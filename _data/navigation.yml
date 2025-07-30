@@ -20,9 +20,9 @@ main:
 categories:
   - title: "GitHub Page"
     url: /categories/categories1/
-  - title: "Categories2"
+  - title: "C/C++"
     url: /categories/categories2/
-  - title: "Categories3"
+  - title: "DataStruct"
     url: /categories/categories3/
-  - title: "Categories4"
+  - title: "Operate System"
     url: /categories/categories4/
