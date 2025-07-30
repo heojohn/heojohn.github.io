@@ -28,3 +28,9 @@ categories:
     url: /categories/categories4/
   - title: "test cate"
     url: /categories/categories20/
+  - title: "test children categories"
+      children:
+        - title: "Categories1"
+          url: /categories/categories1/
+        - title: "Categories20"
+          url: /categories/categories20/
