@@ -38,8 +38,8 @@ categories:
       children:
         - title: "Categories1"
           url: /categories/categories1/
-        - title: "Categories20"
-          url: /categories/categories20/
+        - title: "Categories2"
+          url: /categories/categories2/
   - title: "dfgdfg"
     url: /categories/categories20/  
 
