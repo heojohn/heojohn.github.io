@@ -32,9 +32,4 @@ categories:
     url: /categories/categories4/
     
 
-  - title: "test children categories"
-      children:
-        - title: "testcategories"
-          url: /categories/categories20/
-
 
