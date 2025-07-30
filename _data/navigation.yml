@@ -17,6 +17,7 @@ main:
 
 # sidebar navigation (categories)
 # 2022.02.15 sidebar update : simple ver.
+
 categories:
   - title: "GitHub Page"
     url: /categories/categories1/
@@ -39,3 +40,6 @@ categories:
           url: /categories/categories1/
         - title: "Categories20"
           url: /categories/categories20/
+  - title: "dfgdfg"
+    url: /categories/categories20/  
+
