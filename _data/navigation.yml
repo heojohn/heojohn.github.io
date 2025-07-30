@@ -31,15 +31,10 @@ categories:
   - title: "Operate System"
     url: /categories/categories4/
     
-  - title: "test cate"
-    url: /categories/categories20/
-    
+
   - title: "test children categories"
       children:
-        - title: "Categories1"
-          url: /categories/categories1/
-        - title: "Categories2"
-          url: /categories/categories2/
-  - title: "dfgdfg"
-    url: /categories/categories20/  
+        - title: "testcategories"
+          url: /categories/categories20/
+
 
