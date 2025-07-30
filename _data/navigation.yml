@@ -20,14 +20,19 @@ main:
 categories:
   - title: "GitHub Page"
     url: /categories/categories1/
+    
   - title: "C/C++"
     url: /categories/categories2/
+    
   - title: "Data Structure"
     url: /categories/categories3/
+    
   - title: "Operate System"
     url: /categories/categories4/
+    
   - title: "test cate"
     url: /categories/categories20/
+    
   - title: "test children categories"
       children:
         - title: "Categories1"
