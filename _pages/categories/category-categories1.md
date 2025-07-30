@@ -1,9 +1,9 @@
 ---
 title: "GitHub Page"
 layout: category
-permalink: /categories/categories1/
+permalink: /categories/GitHub_Page/
 author_profile: true
-taxonomy: Categories1111
+taxonomy: Categories1
 sidebar:
   nav: "categories"
 ---
