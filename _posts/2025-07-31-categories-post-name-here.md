@@ -23,12 +23,13 @@ last_modified_at: 2025-07-31
 
 
 # 수정해야할것  
-## 1.favicon  
-###   1. favicon image generate  
-###   2. 파일 정리  
+---
+## <mark>1.favicon</mark>  
+###    1. favicon image generate  
+###    2. 파일 정리  
 
 ## 2.창 위에 뜨는 제목들     
-###  1. 고정 혹은 유동적으로 지금처럼 할지 결정  
+###   1. 고정 혹은 유동적으로 지금처럼 할지 결정  
 
 
 ## 3.댓글추가  
