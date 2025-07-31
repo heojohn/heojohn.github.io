@@ -1,6 +1,6 @@
 ---
-title: "[포스팅 예시] 이곳에 제목을 입력하세요"
-excerpt: "본문의 주요 내용을 여기에 입력하세요"
+title: "수정 목록"
+excerpt: "수정할 항목들을 정리"
 
 categories:
   - Categories1
