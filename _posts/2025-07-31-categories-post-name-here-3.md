@@ -5,7 +5,8 @@ excerpt: "알아둬야할 것"
 categories:
   - Categories1
 tags:
-  - [tag1, tag2]
+  - tag1
+  - tag2
 
 permalink: /categories1/post-name-here-3/
 
