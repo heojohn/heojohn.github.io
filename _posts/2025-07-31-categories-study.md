@@ -59,7 +59,7 @@ last_modified_at: 2025-07-31
 
 1. Markdown 문법 → `.md` 문서 작성 자유자재  
 2. Jekyll 기본 구조 → `_posts`, `_layouts`, `_includes` 이해  
-3. Liquid 문법 → `{{ }}`, `{% %}` 문법으로 동적 처리 방식 익히기  
+3. Liquid 문법 →  문법으로 동적 처리 방식 익히기  
 4. Minimal Mistakes 구조 분석 → `config.yml`, `_data/navigation.yml`, `_pages/`, `_layouts/`  
 5. GitHub Pages 동작 원리 → 브라우저에서 자동으로 빌드/배포되는 원리  
 
