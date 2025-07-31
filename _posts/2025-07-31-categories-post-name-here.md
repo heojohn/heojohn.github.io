@@ -14,11 +14,17 @@ toc_sticky: true
 
 date: 2025-07-31
 last_modified_at: 2025-07-31
+
+
+# sitemap :
+#   changefreq : daily
+#   priority : 1.0
 ---
 
 
-수정해야할것  
-1.favicon   
-2.창 위에 뜨는 제목들  
-3.댓글추가  
-4.카테고리 정리
+# 수정해야할것  
+## 1.favicon  
+
+## 2.창 위에 뜨는 제목들  
+## 3.댓글추가  
+## 4.카테고리 정리
