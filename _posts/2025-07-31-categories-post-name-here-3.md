@@ -3,11 +3,11 @@ title: "공부"
 excerpt: "알아둬야할 것"
 
 categories:
-  - Categories3
+  - Categories1
 tags:
   - [tag1, tag2]
 
-permalink: /categories3/post-name-here-3/
+permalink: /categories1/post-name-here-3/
 
 toc: true
 toc_sticky: true
