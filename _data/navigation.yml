@@ -38,9 +38,9 @@ categories:
       - title: "Categories6"
         url: /categories/categories6/
 
-  - title: "Title3"
+  - title: "Project"
     children:
-      - title: "Categories7"
+      - title: "Effecter"
         url: /categories/categories7/
     
 
