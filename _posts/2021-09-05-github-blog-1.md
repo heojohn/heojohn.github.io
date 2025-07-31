@@ -3,7 +3,7 @@ title: "[GitHub Blog] velog에서 GitHub 블로그로"
 excerpt: "velog에서 GitHub 블로그로 옮긴 이유. velog와 깃허브 블로그의 장단점. 다시 시작하는 블로그 :)"
 
 categories:
-  - GitHub Blog
+  - Categories1
 tags:
   - [GitHub Blog, Git, 깃허브 블로그]
 
