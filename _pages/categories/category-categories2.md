@@ -1,9 +1,9 @@
 ---
-title: "Categories2"
+title: "C/C++"
 layout: category
-permalink: /categories/categories2/
+permalink: /categories/C/
 author_profile: true
-taxonomy: Categories2
+taxonomy: C
 sidebar:
   nav: "categories"
 ---
