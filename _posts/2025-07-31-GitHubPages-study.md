@@ -7,7 +7,7 @@ categories:
 tags:
   - [tag1, tag2]
 
-permalink: /categories1/study/
+permalink: /GitHubPages/study/
 
 toc: true
 toc_sticky: true
