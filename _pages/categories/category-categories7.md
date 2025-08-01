@@ -1,7 +1,7 @@
 ---
 title: "77777"
 layout: category
-permalink: /categories/categories7/
+permalink: /categories/ProjectEffecter/
 author_profile: true
 taxonomy: Effecter
 sidebar:
