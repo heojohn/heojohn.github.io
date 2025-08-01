@@ -1,5 +1,5 @@
 ---
-title: "77777"
+title: "Project Effecter"
 layout: category
 permalink: /categories/ProjectEffecter/
 author_profile: true
