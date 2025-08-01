@@ -3,7 +3,7 @@ title: "수정 목록"
 excerpt: "수정할 항목들을 정리"
 
 categories:
-  - Categories1
+  - GitHubPages
 tags:
   - [tag1, tag2]
 
