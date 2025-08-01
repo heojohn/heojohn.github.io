@@ -3,12 +3,12 @@ title: "공부"
 excerpt: "알아둬야할 것"
 
 categories:
-  - Categories1
+  - DataStructure
 tags:
   - tag1
   - tag2
 
-permalink: /categories1/post-name-here-3/
+permalink: /DataStructure/st/
 
 toc: true
 toc_sticky: true
