@@ -35,3 +35,6 @@ last_modified_at: 2025-07-31
 ## 3.댓글추가  
 
 ## 4.카테고리 정리
+- _data/navigation.yml의 url주소 수정
+- _pages/categories/해당 카테고리 파일 내 permalink,taxonomy수정(taxomony와 포스트의 카테고리가 똑같아야 카테고리를 누르면 그 화면에서 목록이 뜸) 다르면 목록은 안뜨지만 정상적으로 작동??(링크를 직접 입력)
+- 포스트의 카테고리, permalink 수정
