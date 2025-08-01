@@ -23,25 +23,25 @@ categories:
     url: /categories/GitHubPages/
     
   - title: "C/C++"
-    url: /categories/categories2/
+    url: /categories/C/
     
   - title: "Data Structure"
-    url: /categories/categories3/
+    url: /categories/DataStructure/
     
   - title: "Operate System"
-    url: /categories/categories4/
+    url: /categories/OperateSystem/
     
   - title: "MicroProcessor"
     children:
-      - title: "Categories5"
-        url: /categories/categories5/
-      - title: "Categories6"
-        url: /categories/categories6/
+      - title: "MicroProcesseor"
+        url: /categories/Microprocessor/
+      - title: "Microprocessor Architecture"
+        url: /categories/Microprocessor Architecture/
 
   - title: "Project"
     children:
       - title: "Effecter"
-        url: /categories/categories7/
+        url: /categories/Project-Effeter/
     
 
 
