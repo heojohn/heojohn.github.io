@@ -3,11 +3,11 @@ title: "Markdown"
 excerpt: "markdown이란"
 
 categories:
-  - GitHub Pages
+  - GitHubPages
 tags:
   - [tag1, tag2]
 
-permalink: /GitHub-Pages/markdown/
+permalink: /GitHubPages/markdown/
 
 toc: true
 toc_sticky: true
