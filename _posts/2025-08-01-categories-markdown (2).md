@@ -7,7 +7,7 @@ categories:
 tags:
   - [tag1, tag2]
 
-permalink: /categories1/markdown/
+permalink: /GitHub-Pages/markdown/
 
 toc: true
 toc_sticky: true
