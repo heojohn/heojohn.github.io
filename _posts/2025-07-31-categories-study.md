@@ -3,7 +3,7 @@ title: "공부"
 excerpt: "깃허브 블로그에 관해..."
 
 categories:
-  - Categories1
+  - GitHubPages
 tags:
   - [tag1, tag2]
 
