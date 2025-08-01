@@ -28,8 +28,8 @@ categories:
   - title: "Data Structure"
     url: /categories/DataStructure/
     
-  - title: "Operate System"
-    url: /categories/OperateSystem/
+  - title: "Operating System"
+    url: /categories/OperatingSystem/
     
   - title: "MicroProcessor"
     children:
