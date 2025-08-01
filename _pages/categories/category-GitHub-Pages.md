@@ -1,5 +1,5 @@
 ---
-title: "GitHu-Pages"
+title: "GitHub Pages"
 layout: category
 permalink: /categories/GitHub-Pages/
 author_profile: true
