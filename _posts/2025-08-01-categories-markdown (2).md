@@ -3,7 +3,7 @@ title: "Markdown"
 excerpt: "markdown이란"
 
 categories:
-  - Categories1
+  - GitHubBlog
 tags:
   - [tag1, tag2]
 
