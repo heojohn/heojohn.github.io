@@ -20,7 +20,7 @@ last_modified_at: 2025-08-01
 
 ---
 
-
+aa
 ## 1. Introduction
 소프트웨어 개발 과정에서의 System Life Cycle을 설명   
 <blockquote>문제 해결을 위해 다음 5단계를 따름:  
