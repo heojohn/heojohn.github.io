@@ -26,11 +26,11 @@ last_modified_at: 2025-08-01
 <blockquote>문제 해결을 위해 다음 5단계를 따름:  
 <br>
 
-1. Requirement (요구사항: 입력/출력 정의)  
-2. Analysis (문제 분해: manageable sub-problems로 나눔)  
-3. Design (ADT와 알고리즘 수준의 설계)  
-4. Coding (구현)  
-5. Verification (검증, 테스트 및 오류 제거)  
+1. Requirement (요구사항: 입력/출력 정의)  <br>
+2. Analysis (문제 분해: manageable sub-problems로 나눔)  <br>
+3. Design (ADT와 알고리즘 수준의 설계)  <br>
+4. Coding (구현)  <br>
+5. Verification (검증, 테스트 및 오류 제거)  <br>
 </blockquote>
 
 ---
@@ -40,11 +40,11 @@ last_modified_at: 2025-08-01
 <blockquote> 조건:  
 <br>
 
-- 입력 (0개 이상)  
-- 출력 (최소 1개)  
-- 명확성 (Definiteness)  
-- 유한성 (Finiteness)  
-- 효과성 (Effectiveness) </blockquote> 
+• 입력 (0개 이상)  <br>
+• 출력 (최소 1개)  <br>
+• 명확성 (Definiteness)<br>
+• 유한성 (Finiteness)<br>
+• 효과성 (Effectiveness) </blockquote> 
 
 알고리즘 ≠ 프로그램  
 (알고리즘은 개념적 단계, 프로그램은 구체적 구현)  
@@ -79,8 +79,8 @@ ADT란?: 데이터 + 그에 대한 연산의 집합을 추상적으로 정의
 <blockquote>예시:  
 <br>
 
-- 자연수 ADT: Add, Subtract, Is_Zero 등
-- 리스트 ADT: insert, retrieve 등 </blockquote>
+• 자연수 ADT: Add, Subtract, Is_Zero 등<br>
+• 리스트 ADT: insert, retrieve 등 </blockquote>
   
 ---
   
@@ -125,8 +125,8 @@ C++, Java에서는 템플릿(generic programming) 지원으로 더 간단하게 
 <blockquote>분석 방법:
 <br>
 
-- 반복문 (linear: O(n), quadratic: O(n²), logarithmic: O(log n) 등)
-- 중첩 반복문 (nested loop)의 총 수행 횟수 계산</blockquote>
+• 반복문 (linear: O(n), quadratic: O(n²), logarithmic: O(log n) 등)<br>
+• 중첩 반복문 (nested loop)의 총 수행 횟수 계산</blockquote>
 
   
 **Big-O 표기법**: 최악의 경우 복잡도 표현
