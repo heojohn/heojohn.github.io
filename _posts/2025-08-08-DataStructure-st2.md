@@ -18,6 +18,8 @@ last_modified_at: 2025-08-08
 ---
 
 
+# ADT Implementations
+## Two basic structures to implement ADT's
 
 ## 1) 배열 기반 구현 — “index → element” 매핑
 연속 메모리에 요소를 나란히 저장하여 **인덱스로 즉시 접근**한다.
