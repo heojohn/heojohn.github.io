@@ -23,8 +23,9 @@ last_modified_at: 2025-08-01
 
 ## 1. Introduction
 소프트웨어 개발 과정에서의 System Life Cycle을 설명   
-<blockquote>문제 해결을 위해 다음 5단계를 따름:
-    
+<blockquote>문제 해결을 위해 다음 5단계를 따름:  
+
+      
 1. Requirement (요구사항: 입력/출력 정의)  
 2. Analysis (문제 분해: manageable sub-problems로 나눔)  
 3. Design (ADT와 알고리즘 수준의 설계)  
@@ -36,7 +37,7 @@ last_modified_at: 2025-08-01
   
 ## 2. Algorithms
 알고리즘 정의: 특정 작업을 수행하는 유한 개의 명령어 집합  
-<blockquote> 조건: 
+<blockquote> 조건:  
 
 - 입력 (0개 이상)  
 - 출력 (최소 1개)  
@@ -74,7 +75,7 @@ ADT란?: 데이터 + 그에 대한 연산의 집합을 추상적으로 정의
 
 내부 표현과 구현은 숨김 (How it is done)
 
-<blockquote>예시:
+<blockquote>예시:  
 
 - 자연수 ADT: Add, Subtract, Is_Zero 등
 - 리스트 ADT: insert, retrieve 등 </blockquote>
