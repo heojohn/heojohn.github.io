@@ -23,25 +23,26 @@ last_modified_at: 2025-08-01
 
 ## 1. Introduction
 소프트웨어 개발 과정에서의 System Life Cycle을 설명   
-<blockquote>문제 해결을 위해 다음 5단계를 따름:</blockquote>
+<blockquote>문제 해결을 위해 다음 5단계를 따름:
     
 1. Requirement (요구사항: 입력/출력 정의)  
 2. Analysis (문제 분해: manageable sub-problems로 나눔)  
 3. Design (ADT와 알고리즘 수준의 설계)  
 4. Coding (구현)  
 5. Verification (검증, 테스트 및 오류 제거)  
-  
+</blockquote>
+
 ---
   
 ## 2. Algorithms
 알고리즘 정의: 특정 작업을 수행하는 유한 개의 명령어 집합  
-<blockquote> 조건: </blockquote>
+<blockquote> 조건: 
 
 - 입력 (0개 이상)  
 - 출력 (최소 1개)  
 - 명확성 (Definiteness)  
 - 유한성 (Finiteness)  
-- 효과성 (Effectiveness)  
+- 효과성 (Effectiveness) </blockquote> 
 
 알고리즘 ≠ 프로그램  
 (알고리즘은 개념적 단계, 프로그램은 구체적 구현)  
@@ -73,10 +74,10 @@ ADT란?: 데이터 + 그에 대한 연산의 집합을 추상적으로 정의
 
 내부 표현과 구현은 숨김 (How it is done)
 
-<blockquote>예시:</blockquote>
+<blockquote>예시:
 
 - 자연수 ADT: Add, Subtract, Is_Zero 등
-- 리스트 ADT: insert, retrieve 등
+- 리스트 ADT: insert, retrieve 등 </blockquote>
   
 ---
   
@@ -118,11 +119,12 @@ C++, Java에서는 템플릿(generic programming) 지원으로 더 간단하게 
 
 복잡도 표기: 시간/공간 복잡도, 특히 시간 복잡도 분석
 
-<blockquote>분석 방법:</blockquote>
+<blockquote>분석 방법:
 
 - 반복문 (linear: O(n), quadratic: O(n²), logarithmic: O(log n) 등)
-- 중첩 반복문 (nested loop)의 총 수행 횟수 계산
+- 중첩 반복문 (nested loop)의 총 수행 횟수 계산</blockquote>
 
+  
 **Big-O 표기법**: 최악의 경우 복잡도 표현
 - O(1), O(n), O(log n), O(n log n), O(n²), O(2ⁿ), O(n!) 등
 
