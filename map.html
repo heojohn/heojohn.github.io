@@ -1,0 +1,26 @@
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=1cadb229d62e1a7df1e0d0e8fec580aa&libraries=services"></script>
+<style>html,body,#map{height:100%;margin:0}</style></head>
+<body><div id="map"></div>
+<script>
+  const map = new kakao.maps.Map(document.getElementById('map'), {
+    center: new kakao.maps.LatLng(35.115,129.040), level:4
+  });
+
+  // 지도 클릭 → RN(WebView)으로 좌표 보내기
+  kakao.maps.event.addListener(map,'click',e=>{
+    const p=e.latLng;(window.ReactNativeWebView||parent).postMessage(JSON.stringify({
+      type:'click', lat:p.getLat(), lng:p.getLng()
+    }),'*');
+  });
+
+  // RN에서 경로 좌표 배열을 주면 폴리라인 그리기
+  window.drawRoute = (pts)=>{
+    if(window.routeLine) window.routeLine.setMap(null);
+    const path = pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
+    window.routeLine = new kakao.maps.Polyline({path, strokeWeight:4, strokeColor:'#2BB6A8'});
+    window.routeLine.setMap(map);
+    if(path.length) map.setCenter(path[0]);
+  };
+</script></body></html>
