@@ -3,54 +3,61 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-  <!-- SDK를 늦게 로드하고 준비되면 초기화 -->
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=1cadb229d62e1a7df1e0d0e8fec580aa&libraries=services&autoload=false"></script>
   <style>
-    html,body{height:100%;margin:0;padding:0}
-    #map{position:fixed; inset:0; width:100vw; height:100vh;}
-    #err{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font:14px/1.4 system-ui; color:#900}
+    html,body{height:100%;margin:0}
+    #map{position:fixed;inset:0}
+    #err{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#a00;font:14px/1.4 system-ui}
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="err" style="display:none"></div>
+
   <script>
-    try {
-      kakao.maps.load(function () {
-        try {
-          const map = new kakao.maps.Map(document.getElementById('map'), {
-            center: new kakao.maps.LatLng(35.115,129.040), level:4
-          });
+    // 1) Kakao SDK를 동적으로 로드
+    (function loadKakao(){
+      const s = document.createElement('script');
+      s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=1cadb229d62e1a7df1e0d0e8fec580aa&libraries=services&autoload=false";
+      s.onload = function(){
+        // 2) SDK 준비 완료 후에만 초기화
+        kakao.maps.load(initMap);
+      };
+      s.onerror = function(){
+        showErr("SDK 로드 실패: dapi.kakao.com 접근이 차단되었거나 네트워크 오류입니다.");
+      };
+      document.head.appendChild(s);
+    })();
 
-          kakao.maps.event.addListener(map,'click',function(e){
-            const p=e.latLng;
-            if (window.ReactNativeWebView) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({type:'click',lat:p.getLat(),lng:p.getLng()}));
-            } else {
-              console.log('click', p.getLat(), p.getLng());
-            }
-          });
+    function initMap(){
+      try {
+        const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(35.115,129.040), level:4
+        });
 
-          window.drawRoute = function(pts){
-            if(window.routeLine) window.routeLine.setMap(null);
-            const path = pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
-            window.routeLine = new kakao.maps.Polyline({path, strokeWeight:4, strokeColor:'#2BB6A8', strokeOpacity:0.9});
-            window.routeLine.setMap(map);
-            if(path.length) map.setCenter(path[0]);
-          };
-        } catch (e) {
-          showErr(e);
-        }
-      });
-    } catch (e) {
-      showErr(e);
+        kakao.maps.event.addListener(map,'click',function(e){
+          const p=e.latLng;
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({type:'click',lat:p.getLat(),lng:p.getLng()}));
+          } else {
+            console.log('click', p.getLat(), p.getLng());
+          }
+        });
+
+        window.drawRoute = function(pts){
+          if(window.routeLine) window.routeLine.setMap(null);
+          const path = pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
+          window.routeLine = new kakao.maps.Polyline({path, strokeWeight:4, strokeColor:'#2BB6A8', strokeOpacity:0.9});
+          window.routeLine.setMap(map);
+          if(path.length) map.setCenter(path[0]);
+        };
+      } catch (e) { showErr(e && e.message ? e.message : e); }
     }
 
-    function showErr(e){
-      const box = document.getElementById('err');
-      box.style.display = 'flex';
-      box.textContent = '지도 로드 실패: ' + (e && e.message ? e.message : e);
-      console.error(e);
+    function showErr(msg){
+      const el = document.getElementById('err');
+      el.style.display = 'flex';
+      el.textContent = "지도 로드 실패: " + msg;
+      console.error(msg);
     }
   </script>
 </body>
