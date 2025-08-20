@@ -1,26 +1,57 @@
-<!doctype html><html lang="ko"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=1cadb229d62e1a7df1e0d0e8fec580aa&libraries=services"></script>
-<style>html,body,#map{height:100%;margin:0}</style></head>
-<body><div id="map"></div>
-<script>
-  const map = new kakao.maps.Map(document.getElementById('map'), {
-    center: new kakao.maps.LatLng(35.115,129.040), level:4
-  });
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <!-- SDK를 늦게 로드하고 준비되면 초기화 -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=1cadb229d62e1a7df1e0d0e8fec580aa&libraries=services&autoload=false"></script>
+  <style>
+    html,body{height:100%;margin:0;padding:0}
+    #map{position:fixed; inset:0; width:100vw; height:100vh;}
+    #err{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font:14px/1.4 system-ui; color:#900}
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="err" style="display:none"></div>
+  <script>
+    try {
+      kakao.maps.load(function () {
+        try {
+          const map = new kakao.maps.Map(document.getElementById('map'), {
+            center: new kakao.maps.LatLng(35.115,129.040), level:4
+          });
 
-  // 지도 클릭 → RN(WebView)으로 좌표 보내기
-  kakao.maps.event.addListener(map,'click',e=>{
-    const p=e.latLng;(window.ReactNativeWebView||parent).postMessage(JSON.stringify({
-      type:'click', lat:p.getLat(), lng:p.getLng()
-    }),'*');
-  });
+          kakao.maps.event.addListener(map,'click',function(e){
+            const p=e.latLng;
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({type:'click',lat:p.getLat(),lng:p.getLng()}));
+            } else {
+              console.log('click', p.getLat(), p.getLng());
+            }
+          });
 
-  // RN에서 경로 좌표 배열을 주면 폴리라인 그리기
-  window.drawRoute = (pts)=>{
-    if(window.routeLine) window.routeLine.setMap(null);
-    const path = pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
-    window.routeLine = new kakao.maps.Polyline({path, strokeWeight:4, strokeColor:'#2BB6A8'});
-    window.routeLine.setMap(map);
-    if(path.length) map.setCenter(path[0]);
-  };
-</script></body></html>
+          window.drawRoute = function(pts){
+            if(window.routeLine) window.routeLine.setMap(null);
+            const path = pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
+            window.routeLine = new kakao.maps.Polyline({path, strokeWeight:4, strokeColor:'#2BB6A8', strokeOpacity:0.9});
+            window.routeLine.setMap(map);
+            if(path.length) map.setCenter(path[0]);
+          };
+        } catch (e) {
+          showErr(e);
+        }
+      });
+    } catch (e) {
+      showErr(e);
+    }
+
+    function showErr(e){
+      const box = document.getElementById('err');
+      box.style.display = 'flex';
+      box.textContent = '지도 로드 실패: ' + (e && e.message ? e.message : e);
+      console.error(e);
+    }
+  </script>
+</body>
+</html>
