@@ -1,210 +1,61 @@
-// app/(tabs)/index.tsx
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { WebView } from "react-native-webview";
-import * as Location from "expo-location";
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #map { position: fixed; inset: 0; }
+  </style>
+  <title>OneStep Map</title>
+</head>
+<body>
+  <div id="map"></div>
 
-// (이미 만든 파이어베이스 제보 저장용 – 없어도 경로엔 영향 없음)
-import "../../src/lib/firebase";
-import { createReport } from "../../src/api/reports";
+  <script>
+    // 1) 지도
+    const map = L.map('map').setView([35.115, 129.040], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-type LatLng = { lat: number; lng: number };
+    // 2) RN으로 클릭 전달
+    map.on('click', (e) => {
+      const msg = JSON.stringify({ type: 'click', lat: e.latlng.lat, lng: e.latlng.lng });
+      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
+      else console.log('[click]', msg);
+    });
 
-const ROUTE_URL = "https://kmwalk-4eypliovda-du.a.run.app";
-// map.html 캐시 무력화용 버전 파라미터 — 숫자만 바꿔도 됨
-const MAP_URL = "https://heojohn.github.io/map.html?v=33";
+    // 3) 경로 그리기/지우기
+    let routeLine;
+    window.drawRoute = (pts) => {
+      try {
+        if (!Array.isArray(pts) || pts.length < 2) return;
+        if (routeLine) map.removeLayer(routeLine);
+        routeLine = L.polyline(pts.map(p => [p.lat, p.lng]), { weight: 4, color: '#2B6CB0' }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
+      } catch (e) { console.error('drawRoute error:', e); }
+    };
+    window.clearRoute = () => {
+      if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+    };
 
-export default function Page() {
-  const webRef = useRef<WebView>(null);
+    // 4) 내 위치 마커
+    let myMarker;
+    window.setMyLocation = (lat, lng) => {
+      try {
+        if (myMarker) myMarker.remove();
+        myMarker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], 17, { animate: true });
+      } catch (e) { console.error('setMyLocation error:', e); }
+    };
 
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [myLoc, setMyLoc] = useState<LatLng | null>(null);
-
-  // 출발/도착/경유지
-  const startRef = useRef<LatLng | null>(null);
-  const endRef = useRef<LatLng | null>(null);
-  const wpsRef = useRef<LatLng[]>([]);
-
-  // 요약 배지
-  const [info, setInfo] = useState<{ distance: number; duration: number } | null>(null);
-
-  // 0) 내 위치 권한 + 좌표
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("위치 권한 필요", "설정에서 위치 권한을 허용해 주세요.");
-        return;
-      }
-      const pos = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      const me = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      setMyLoc(me);
-    })();
-  }, []);
-
-  // 1) 지도 로드 후 내 위치 마커 표시
-  useEffect(() => {
-    if (!mapLoaded || !myLoc) return;
-    webRef.current?.injectJavaScript(`window.setMyLocation(${myLoc.lat}, ${myLoc.lng}); true;`);
-  }, [mapLoaded, myLoc]);
-
-  // 2) 지도 클릭 수신(출발→도착→경유지 순서)
-  const onMapMessage = async (e: any) => {
-    try {
-      const m = JSON.parse(e.nativeEvent.data);
-      if (m.type === "ready") {
-        setMapLoaded(true);
-        return;
-      }
-      if (m.type === "click") {
-        const p: LatLng = { lat: m.lat, lng: m.lng };
-        if (!startRef.current) {
-          startRef.current = p;
-          Alert.alert("출발지 지정", "도착지를 탭하세요.");
-          return;
-        }
-        if (!endRef.current) {
-          endRef.current = p;
-          Alert.alert("도착지 지정", "경로를 계산합니다.");
-          void recalcRoute();
-          return;
-        }
-        // 이후 클릭은 경유지로 축적(원하면 사용)
-        wpsRef.current.push(p);
-        Alert.alert("경유지 추가", `현재 ${wpsRef.current.length}개`);
-        void recalcRoute();
-      }
-    } catch (err) {
-      console.warn("onMessage parse error:", err);
+    // 5) 로드 완료 신호
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
     }
-  };
-
-  // 3) 경로 재계산
-  const recalcRoute = async () => {
-    const s = startRef.current;
-    const d = endRef.current;
-    if (!s || !d) return;
-
-    try {
-      const body = {
-        origin: s,
-        destination: d,
-        waypoints: wpsRef.current,
-        priority: "DISTANCE",
-        summary: true,
-      };
-
-      const resp = await fetch(ROUTE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!resp.ok) {
-        const t = await resp.text();
-        console.log("❌ route http error:", resp.status, t);
-        Alert.alert("서버 오류", `${resp.status}`);
-        return;
-      }
-
-      const data = await resp.json();
-      console.log("✅ route json len:", data?.path?.length, "summary:", data?.summary);
-      if (!Array.isArray(data.path) || data.path.length < 2) {
-        Alert.alert("경로 없음", "선택한 출발/도착으로 경로를 찾지 못했습니다.");
-        return;
-      }
-
-      // 연속 중복 제거(선택)
-      const path = dedup(data.path);
-      // 지도에 그리기 (⚠️ true; 꼭 붙이기!)
-      webRef.current?.injectJavaScript(`window.drawRoute(${JSON.stringify(path)}); true;`);
-
-      if (data.summary?.distance && data.summary?.duration) {
-        setInfo({ distance: data.summary.distance, duration: data.summary.duration });
-      }
-    } catch (err: any) {
-      console.log("❌ route fetch error:", err?.message || err);
-      Alert.alert("네트워크 오류", "경로 계산 중 문제가 발생했어요.");
-    }
-  };
-
-  // 4) 경로 초기화
-  const resetRoute = () => {
-    startRef.current = null;
-    endRef.current = null;
-    wpsRef.current = [];
-    setInfo(null);
-    webRef.current?.injectJavaScript("window.clearRoute(); true;");
-    Alert.alert("초기화", "출발지부터 다시 찍어주세요.");
-  };
-
-  // 5) 디버그: 지도 라인 그리는지 자체 테스트
-  const drawTestLine = () => {
-    const fake = [
-      { lat: 35.115, lng: 129.04 },
-      { lat: 35.1145, lng: 129.039 },
-      { lat: 35.1138, lng: 129.0383 },
-    ];
-    webRef.current?.injectJavaScript(`window.drawRoute(${JSON.stringify(fake)}); true;`);
-  };
-
-  return (
-    <View style={styles.container}>
-      <WebView
-        ref={webRef}
-        source={{ uri: MAP_URL }}
-        onMessage={onMapMessage}
-        onLoadEnd={() => setMapLoaded(true)}
-        style={StyleSheet.absoluteFill}
-        androidLayerType={Platform.OS === "android" ? "hardware" : "none"}
-      />
-
-      {/* 우상단 버튼 */}
-      <View style={styles.btns}>
-        <TouchableOpacity style={[styles.btn, { backgroundColor: "#3B82F6" }]} onPress={resetRoute}>
-          <Text style={styles.btnTxt}>경로 초기화</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, { backgroundColor: "#374151" }]} onPress={drawTestLine}>
-          <Text style={styles.btnTxt}>테스트 라인</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 요약 배지 */}
-      {info && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>
-            {(info.distance / 1000).toFixed(1)} km · {(info.duration / 60) | 0}분
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function dedup(arr: LatLng[]) {
-  const out: LatLng[] = [];
-  for (const p of arr) {
-    const last = out[out.length - 1];
-    if (!last || last.lat !== p.lat || last.lng !== p.lng) out.push(p);
-  }
-  return out;
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  btns: { position: "absolute", right: 12, top: 48, gap: 8 },
-  btn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, elevation: 2 },
-  btnTxt: { color: "#fff", fontWeight: "700" },
-  badge: {
-    position: "absolute",
-    left: 16,
-    top: 48,
-    backgroundColor: "#00000088",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  badgeText: { color: "#fff", fontWeight: "600" },
-});
+  </script>
+</body>
+</html>
