@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <!-- Leaflet CSS/JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
@@ -14,110 +13,51 @@
 </head>
 <body>
   <div id="map"></div>
+
   <script>
-    // ------------------ 1) 지도 생성 ------------------
     const map = L.map('map').setView([35.115, 129.040], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // ------------------ 2) RN← 클릭 전달 ------------------
+    // RN <- 클릭 전달
     map.on('click', (e) => {
       const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
-      const msg = JSON.stringify(payload);
-      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
-      else console.log('[click]', payload);
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+      } else {
+        console.log('[click]', payload);
+      }
     });
 
-    // ------------------ 3) 선(경로) 그리기 ------------------
-    let routeLine = null;
-
-    function fitToEverything() {
-      const bounds = L.latLngBounds();
-
-      if (routeLine) bounds.extend(routeLine.getBounds());
-      if (myMarker) bounds.extend(myMarker.getLatLng());
-      if (originMarker) bounds.extend(originMarker.getLatLng());
-      if (destMarker) bounds.extend(destMarker.getLatLng());
-      for (const m of wpMarkers) bounds.extend(m.getLatLng());
-
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [32, 32] });
-    }
-
+    // 경로 그리기/지우기/내 위치 세팅
+    let routeLine;
     window.drawRoute = (pts) => {
       try {
-        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-        if (!Array.isArray(pts) || pts.length === 0) return;
+        if (!Array.isArray(pts) || !pts.length) return;
+        if (routeLine) map.removeLayer(routeLine);
+
         const latlngs = pts.map(p => [p.lat, p.lng]);
-        routeLine = L.polyline(latlngs, { weight: 4, color: '#2B6CB0' }).addTo(map);
-        fitToEverything();
+        routeLine = L.polyline(latlngs, { weight: 4, color: '#2BB6A8' }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
       } catch (e) { console.error('drawRoute error:', e); }
     };
 
     window.clearRoute = () => {
       if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-      clearDest();
-      clearWaypoints();
     };
 
-    // ------------------ 4) 현재 위치 마커 ------------------
-    let myMarker = null;
+    let myMarker;
     window.setMyLocation = (lat, lng) => {
       try {
-        if (typeof lat !== 'number' || typeof lng !== 'number') return;
         if (myMarker) myMarker.remove();
         myMarker = L.marker([lat, lng]).addTo(map);
         map.setView([lat, lng], 17, { animate: true });
       } catch (e) { console.error('setMyLocation error:', e); }
     };
 
-    // ------------------ 5) 목적지/경유지 마커 ------------------
-    let originMarker = null;  // 필요시 세팅용 (RN에서 호출 가능)
-    let destMarker = null;
-    let wpMarkers = [];
-
-    const mk = (lat, lng, color='#E53E3E') =>
-      L.circleMarker([lat, lng], { radius: 7, color, weight: 2, fillColor: color, fillOpacity: 0.8 });
-
-    window.setOrigin = (lat, lng) => {
-      try {
-        if (originMarker) originMarker.remove();
-        originMarker = mk(lat, lng, '#3182CE').addTo(map); // 파랑
-        fitToEverything();
-      } catch (e) { console.error('setOrigin error:', e); }
-    };
-
-    window.setDestination = (lat, lng) => {
-      try {
-        if (destMarker) destMarker.remove();
-        destMarker = mk(lat, lng, '#E53E3E').addTo(map); // 빨강
-        fitToEverything();
-      } catch (e) { console.error('setDestination error:', e); }
-    };
-
-    window.addWaypoint = (lat, lng) => {
-      try {
-        const m = mk(lat, lng, '#ED8936').addTo(map); // 주황
-        wpMarkers.push(m);
-        fitToEverything();
-      } catch (e) { console.error('addWaypoint error:', e); }
-    };
-
-    function clearDest() {
-      if (destMarker) { destMarker.remove(); destMarker = null; }
-    }
-    function clearWaypoints() {
-      for (const m of wpMarkers) m.remove();
-      wpMarkers = [];
-    }
-
-    window.clearAll = () => {
-      window.clearRoute();
-      if (originMarker) { originMarker.remove(); originMarker = null; }
-      if (myMarker) { myMarker.remove(); myMarker = null; }
-    };
-
-    // ------------------ 6) 준비 완료 신호 ------------------
+    // 준비 완료 신호
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
     }
