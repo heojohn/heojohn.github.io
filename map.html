@@ -2,59 +2,128 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+  />
+  <title>OneStep Map</title>
+
+  <!-- Leaflet CSS/JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     html, body { height: 100%; margin: 0; }
     #map { position: fixed; inset: 0; }
+    #ui {
+      position: fixed; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 1000;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    .btn {
+      background: #111a; color: #fff; border: 0; border-radius: 10px;
+      padding: 8px 12px; font-weight: 600; backdrop-filter: blur(8px);
+    }
+    #err {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      color: #a00; font: 14px/1.4 system-ui; background: #fff;
+    }
   </style>
-  <title>OneStep Map</title>
 </head>
 <body>
   <div id="map"></div>
 
-  <script>
-    // 1) 지도
-    const map = L.map('map').setView([35.115, 129.040], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  <!-- (선택) 브라우저 단독 디버깅용 UI -->
+  <div id="ui">
+    <button class="btn" onclick="clearRoute()">경로 초기화</button>
+  </div>
 
-    // 2) RN으로 클릭 전달
-    map.on('click', (e) => {
-      const msg = JSON.stringify({ type: 'click', lat: e.latlng.lat, lng: e.latlng.lng });
-      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
-      else console.log('[click]', msg);
+  <div id="err"></div>
+
+  <script>
+    // Leaflet CDN 아이콘 경로 보정(일부 환경에서 마커 아이콘이 보이지 않는 문제 방지)
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
     });
 
-    // 3) 경로 그리기/지우기
-    let routeLine;
+    // 1) 지도 생성 (부산역 근처)
+    const map = L.map('map', { zoomControl: true }).setView([35.115, 129.040], 15);
+
+    // 2) 타일 (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3) RN(WebView)로 클릭 이벤트 전달
+    map.on('click', (e) => {
+      const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
+      const msg = JSON.stringify(payload);
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(msg);
+      } else {
+        // 브라우저 단독 실행 시 콘솔 출력
+        console.log('[click]', payload);
+      }
+    });
+
+    // 4) 경로 폴리라인 렌더링
+    let routeLine = null;
     window.drawRoute = (pts) => {
       try {
-        if (!Array.isArray(pts) || pts.length < 2) return;
-        if (routeLine) map.removeLayer(routeLine);
-        routeLine = L.polyline(pts.map(p => [p.lat, p.lng]), { weight: 4, color: '#2B6CB0' }).addTo(map);
+        if (!Array.isArray(pts)) return;
+        if (routeLine) {
+          map.removeLayer(routeLine);
+          routeLine = null;
+        }
+        if (pts.length === 0) return;
+
+        const latlngs = pts.map(p => [Number(p.lat), Number(p.lng)]);
+        routeLine = L.polyline(latlngs, { weight: 4 }).addTo(map);
         map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
-      } catch (e) { console.error('drawRoute error:', e); }
-    };
-    window.clearRoute = () => {
-      if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+      } catch (e) {
+        showErr('drawRoute error: ' + (e && e.message ? e.message : e));
+      }
     };
 
-    // 4) 내 위치 마커
-    let myMarker;
+    // 5) 경로 초기화
+    window.clearRoute = () => {
+      try {
+        if (routeLine) {
+          map.removeLayer(routeLine);
+          routeLine = null;
+        }
+      } catch (e) {
+        showErr('clearRoute error: ' + (e && e.message ? e.message : e));
+      }
+    };
+
+    // 6) 내 위치 마커 + 지도 이동
+    let myMarker = null;
     window.setMyLocation = (lat, lng) => {
       try {
+        if (typeof lat !== 'number' || typeof lng !== 'number') return;
         if (myMarker) myMarker.remove();
         myMarker = L.marker([lat, lng]).addTo(map);
         map.setView([lat, lng], 17, { animate: true });
-      } catch (e) { console.error('setMyLocation error:', e); }
+      } catch (e) {
+        showErr('setMyLocation error: ' + (e && e.message ? e.message : e));
+      }
     };
 
-    // 5) 로드 완료 신호
-    if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
+    // 7) RN에 준비 완료 신호 (선택)
+    try {
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
+      }
+    } catch {}
+
+    function showErr(msg) {
+      const el = document.getElementById('err');
+      el.style.display = 'flex';
+      el.textContent = msg;
+      console.error(msg);
     }
   </script>
 </body>
