@@ -8,55 +8,39 @@
 
   <!-- Leaflet -->
   <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     html, body { height: 100%; margin: 0; }
     #map { position: fixed; inset: 0; }
-    #ui {
-      position: fixed; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 1000;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    }
-    .btn {
-      background: #111a; color: #fff; border: 0; border-radius: 10px;
-      padding: 8px 12px; font-weight: 600; backdrop-filter: blur(8px);
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- (선택) 브라우저 단독 디버그 버튼 -->
-  <div id="ui">
-    <button class="btn" onclick="clearRoute()">경로 초기화</button>
-  </div>
-
   <script>
-    // Leaflet CDN 아이콘 경로 보정
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-    });
-
-    // 지도 생성 (부산역 근처)
+    // 1) 지도 생성
     const map = L.map('map', { zoomControl: true }).setView([35.115, 129.040], 15);
 
-    // 타일 레이어
+    // 2) 타일
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // RN(WebView)로 클릭 이벤트 전달
+    // 3) RN(WebView)로 클릭 이벤트 전달
     map.on('click', (e) => {
       const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
       const msg = JSON.stringify(payload);
-      if (window.ReactNativeWebView?.postMessage) window.ReactNativeWebView.postMessage(msg);
-      else console.log('[click]', payload);
+      if (window.ReactNativeWebView?.postMessage) {
+        window.ReactNativeWebView.postMessage(msg);
+      } else {
+        console.log('[click]', payload);
+      }
     });
 
-    // 경로 폴리라인
+    // 4) 경로 그리기 / 지우기 (외부에서 호출)
     let routeLine = null;
     window.drawRoute = (pts) => {
       try {
@@ -67,7 +51,9 @@
         const latlngs = pts.map(p => [Number(p.lat), Number(p.lng)]);
         routeLine = L.polyline(latlngs, { weight: 4 }).addTo(map);
         map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
-      } catch (e) { console.error('drawRoute error:', e); }
+      } catch (e) {
+        console.error('drawRoute error:', e);
+      }
     };
 
     window.clearRoute = () => {
@@ -76,22 +62,30 @@
       } catch (e) { console.error('clearRoute error:', e); }
     };
 
-    // ✅ 현재 위치 마커 (표시/숨김 토글 지원)
+    // 5) 현재 위치 (안정성: 이미지 대신 circleMarker)
     let myMarker = null;
-    window.setMyLocation = (lat, lng, center=true) => {
+    window.setMyLocation = (lat, lng, center = true) => {
       try {
         if (typeof lat !== 'number' || typeof lng !== 'number') return;
-        if (!myMarker) myMarker = L.marker([lat, lng]).addTo(map);
-        else myMarker.setLatLng([lat, lng]);
-        if (center) map.setView([lat, lng], Math.max(map.getZoom(), 16), { animate: true });
-      } catch (e) { console.error('setMyLocation error:', e); }
+        const latlng = [lat, lng];
+
+        if (!myMarker) {
+          myMarker = L.circleMarker(latlng, {
+            radius: 7, weight: 2, opacity: 1, fillOpacity: 1
+          }).addTo(map);
+        } else {
+          myMarker.setLatLng(latlng);
+        }
+
+        if (center) map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
+      } catch (e) {
+        console.error('setMyLocation error:', e);
+      }
     };
 
-    // 🔻 추가: 현재 위치 마커 숨기기
     window.hideMyLocation = () => {
-      try {
-        if (myMarker) { myMarker.remove(); myMarker = null; }
-      } catch (e) { console.error('hideMyLocation error:', e); }
+      try { if (myMarker) { myMarker.remove(); myMarker = null; } }
+      catch (e) { console.error('hideMyLocation error:', e); }
     };
   </script>
 </body>
