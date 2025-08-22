@@ -2,90 +2,82 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <title>OneStep Map</title>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    html, body { height: 100%; margin: 0; }
-    #map { position: fixed; inset: 0; }
+    html,body{height:100%;margin:0}
+    #map{position:fixed;inset:0}
   </style>
+  <title>OneStep Map</title>
 </head>
 <body>
   <div id="map"></div>
-
   <script>
-    // 1) 지도 생성
-    const map = L.map('map', { zoomControl: true }).setView([35.115, 129.040], 15);
-
-    // 2) 타일
+    // 기본 지도
+    const map = L.map('map').setView([35.115,129.040], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+      maxZoom:19, attribution:'&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 3) RN(WebView)로 클릭 이벤트 전달
-    map.on('click', (e) => {
-      const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
-      const msg = JSON.stringify(payload);
-      if (window.ReactNativeWebView?.postMessage) {
-        window.ReactNativeWebView.postMessage(msg);
-      } else {
-        console.log('[click]', payload);
-      }
+    // iOS/Android에서 물음표 아이콘 안 뜨게 CDN 아이콘 지정
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     });
 
-    // 4) 경로 그리기 / 지우기 (외부에서 호출)
-    let routeLine = null;
-    window.drawRoute = (pts) => {
-      try {
-        if (!Array.isArray(pts)) return;
-        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-        if (pts.length === 0) return;
+    // RN에 클릭 전달
+    map.on('click', (e) => {
+      const msg = JSON.stringify({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng });
+      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
+      else console.log('[click]', e.latlng);
+    });
 
-        const latlngs = pts.map(p => [Number(p.lat), Number(p.lng)]);
-        routeLine = L.polyline(latlngs, { weight: 4 }).addTo(map);
-        map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
-      } catch (e) {
-        console.error('drawRoute error:', e);
-      }
+    // 전역 상태
+    let routeLine, myMarker, startMarker, destMarker;
+
+    // 경로 그리기
+    window.drawRoute = (pts)=>{
+      try {
+        if (routeLine) map.removeLayer(routeLine);
+        if (!Array.isArray(pts) || pts.length===0) return;
+        const latlngs = pts.map(p=>[p.lat,p.lng]);
+        routeLine = L.polyline(latlngs,{weight:4}).addTo(map);
+        map.fitBounds(routeLine.getBounds(),{padding:[32,32]});
+      } catch(e){ console.error('drawRoute',e); }
     };
 
-    window.clearRoute = () => {
+    // 현재 위치
+    window.setMyLocation = (lat,lng,center=false)=>{
       try {
-        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-      } catch (e) { console.error('clearRoute error:', e); }
+        if (myMarker) myMarker.remove();
+        myMarker = L.marker([lat,lng],{title:'내 위치'}).addTo(map);
+        if (center) map.setView([lat,lng],17,{animate:true});
+      } catch(e){ console.error('setMyLocation',e); }
+    };
+    window.hideMyLocation = ()=>{
+      if (myMarker) { myMarker.remove(); myMarker=null; }
     };
 
-    // 5) 현재 위치 (안정성: 이미지 대신 circleMarker)
-    let myMarker = null;
-    window.setMyLocation = (lat, lng, center = true) => {
-      try {
-        if (typeof lat !== 'number' || typeof lng !== 'number') return;
-        const latlng = [lat, lng];
-
-        if (!myMarker) {
-          myMarker = L.circleMarker(latlng, {
-            radius: 7, weight: 2, opacity: 1, fillOpacity: 1
-          }).addTo(map);
-        } else {
-          myMarker.setLatLng(latlng);
-        }
-
-        if (center) map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
-      } catch (e) {
-        console.error('setMyLocation error:', e);
-      }
+    // 출발/도착 마커
+    window.setStart = (lat,lng,center=false)=>{
+      try{
+        if (startMarker) startMarker.remove();
+        startMarker = L.marker([lat,lng],{title:'출발'}).addTo(map);
+        if (center) map.setView([lat,lng],17,{animate:true});
+      }catch(e){console.error('setStart',e);}
     };
-
-    window.hideMyLocation = () => {
-      try { if (myMarker) { myMarker.remove(); myMarker = null; } }
-      catch (e) { console.error('hideMyLocation error:', e); }
+    window.setDest = (lat,lng,center=false)=>{
+      try{
+        if (destMarker) destMarker.remove();
+        destMarker = L.marker([lat,lng],{title:'도착'}).addTo(map);
+        if (center) map.setView([lat,lng],17,{animate:true});
+      }catch(e){console.error('setDest',e);}
+    };
+    window.clearStartDest = ()=>{
+      if (startMarker) { startMarker.remove(); startMarker=null; }
+      if (destMarker)  { destMarker.remove();  destMarker=null;  }
     };
   </script>
 </body>
