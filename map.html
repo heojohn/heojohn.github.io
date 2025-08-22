@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html,body{height:100%;margin:0}
@@ -13,72 +13,68 @@
 </head>
 <body>
   <div id="map"></div>
+
   <script>
-    // 기본 지도
+    // 1) 지도 기본 세팅
     const map = L.map('map').setView([35.115,129.040], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom:19, attribution:'&copy; OpenStreetMap contributors'
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // iOS/Android에서 물음표 아이콘 안 뜨게 CDN 아이콘 지정
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-      iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-      shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    });
-
-    // RN에 클릭 전달
-    map.on('click', (e) => {
+    // 2) RN(WebView)로 클릭 이벤트 전달
+    map.on('click', (e)=>{
       const msg = JSON.stringify({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng });
       if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
       else console.log('[click]', e.latlng);
     });
 
-    // 전역 상태
-    let routeLine, myMarker, startMarker, destMarker;
-
-    // 경로 그리기
+    // 3) 경로 폴리라인 그리기/지우기
+    let routeLine;
     window.drawRoute = (pts)=>{
       try {
-        if (routeLine) map.removeLayer(routeLine);
-        if (!Array.isArray(pts) || pts.length===0) return;
+        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+        if (!Array.isArray(pts) || pts.length === 0) return;
         const latlngs = pts.map(p=>[p.lat,p.lng]);
-        routeLine = L.polyline(latlngs,{weight:4}).addTo(map);
-        map.fitBounds(routeLine.getBounds(),{padding:[32,32]});
-      } catch(e){ console.error('drawRoute',e); }
+        routeLine = L.polyline(latlngs, { weight:4, color:'#2B6FF0' }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding:[32,32] });
+      } catch(e){ console.error('drawRoute error:', e); }
     };
+    window.clearRoute = ()=>{ if (routeLine) { map.removeLayer(routeLine); routeLine=null; } };
 
-    // 현재 위치
-    window.setMyLocation = (lat,lng,center=false)=>{
+    // 4) 현재 위치 —— 이미지 대신 **벡터 원형**으로 통일 (두 탭 동일 스타일)
+    let myDot, myAccuracy;
+    function ensureMyDot(lat, lng){
+      // 파란 점(안쪽) + 흰색 테두리
+      myDot = L.circleMarker([lat,lng], {
+        radius:7, color:'#ffffff', weight:2,
+        fillColor:'#2B6FF0', fillOpacity:1
+      }).addTo(map);
+      // 정확도 원(선택)
+      // myAccuracy = L.circle([lat,lng], { radius: 20, color:'#2B6FF0', opacity:0.2, fillOpacity:0.07 }).addTo(map);
+    }
+    window.setMyLocation = (lat, lng)=>{
       try {
-        if (myMarker) myMarker.remove();
-        myMarker = L.marker([lat,lng],{title:'내 위치'}).addTo(map);
-        if (center) map.setView([lat,lng],17,{animate:true});
-      } catch(e){ console.error('setMyLocation',e); }
+        if (typeof lat!=='number'||typeof lng!=='number') return;
+        if (!myDot) ensureMyDot(lat,lng);
+        else { myDot.setLatLng([lat,lng]); if (myAccuracy) myAccuracy.setLatLng([lat,lng]); }
+        map.setView([lat,lng], Math.max(map.getZoom(), 16), { animate:true });
+      } catch(e){ console.error('setMyLocation error:', e); }
     };
-    window.hideMyLocation = ()=>{
-      if (myMarker) { myMarker.remove(); myMarker=null; }
+    window.showMyLocation = (show)=>{
+      if (show) {
+        if (myDot) myDot.addTo(map);
+        if (myAccuracy) myAccuracy.addTo(map);
+      } else {
+        if (myDot) map.removeLayer(myDot);
+        if (myAccuracy) map.removeLayer(myAccuracy);
+      }
     };
 
-    // 출발/도착 마커
-    window.setStart = (lat,lng,center=false)=>{
-      try{
-        if (startMarker) startMarker.remove();
-        startMarker = L.marker([lat,lng],{title:'출발'}).addTo(map);
-        if (center) map.setView([lat,lng],17,{animate:true});
-      }catch(e){console.error('setStart',e);}
-    };
-    window.setDest = (lat,lng,center=false)=>{
-      try{
-        if (destMarker) destMarker.remove();
-        destMarker = L.marker([lat,lng],{title:'도착'}).addTo(map);
-        if (center) map.setView([lat,lng],17,{animate:true});
-      }catch(e){console.error('setDest',e);}
-    };
-    window.clearStartDest = ()=>{
-      if (startMarker) { startMarker.remove(); startMarker=null; }
-      if (destMarker)  { destMarker.remove();  destMarker=null;  }
-    };
+    // 5) 준비 신호 (옵션)
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type:'ready' }));
+    }
   </script>
 </body>
 </html>
