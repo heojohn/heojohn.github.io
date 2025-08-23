@@ -2,71 +2,75 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>html,body{height:100%;margin:0}#map{position:fixed;inset:0}</style>
-  <title>OneStep Map</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html,body,#map{height:100%;margin:0}
+    .route { stroke: #1e7bff; stroke-width: 5; }
+  </style>
 </head>
 <body>
-  <div id="map"></div>
-  <script>
-    const map = L.map('map', { zoomControl:true }).setView([35.115,129.040],16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map',{ zoomControl:false }).setView([35.8895,128.611],16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom: 19 }).addTo(map);
+  L.control.zoom({ position: 'topleft' }).addTo(map);
 
-    map.on('click', (e) => {
-      const msg = JSON.stringify({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng });
-      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg); else console.log(msg);
-    });
+  // Layers
+  const routeLayer  = L.polyline([], { color:'#1e7bff', weight:5 }).addTo(map);
+  const myLayer     = L.layerGroup().addTo(map);
+  const hazardLayer = L.layerGroup().addTo(map);
 
-    let routeLine=null;
-    window.drawRoute=(pts)=>{
-      try{
-        if(routeLine) map.removeLayer(routeLine);
-        if(!Array.isArray(pts)||pts.length===0) return;
-        const latlngs=pts.map(p=>[p.lat,p.lng]);
-        routeLine=L.polyline(latlngs,{weight:5,color:'#1e73ff'}).addTo(map);
-        map.fitBounds(routeLine.getBounds(),{padding:[32,32]});
-      }catch(e){console.error(e)}
-    };
+  // My location marker
+  let myMarker = null;
+  function setMyLocation(lat,lng,center){
+    if (myMarker) { myLayer.removeLayer(myMarker); myMarker=null; }
+    myMarker = L.marker([lat,lng], {
+      icon: L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconSize:[25,41], iconAnchor:[12,41]
+      })
+    }).addTo(myLayer);
+    if(center) map.setView([lat,lng], Math.max(map.getZoom(), 17));
+  }
+  function clearMyLocation(){
+    if (myMarker){ myLayer.removeLayer(myMarker); myMarker=null; }
+  }
 
-    let myMarker=null;
-    window.setMyLocation=(lat,lng,center=true)=>{
-      if(myMarker) myMarker.remove();
-      myMarker=L.marker([lat,lng]).addTo(map);
-      if(center) map.setView([lat,lng],Math.max(17,map.getZoom()),{animate:true});
-    };
-    window.clearMyLocation=()=>{ if(myMarker){ myMarker.remove(); myMarker=null; } };
-
-    // 회피 사각형
-    let rectLayers=[];
-    window.drawAvoidRects=(rects)=>{
-      rectLayers.forEach(l=>map.removeLayer(l)); rectLayers.length=0;
-      if(!Array.isArray(rects)) return;
-      rects.forEach(r=>{
-        const half=r.side/2;
-        const dLat = half/111320;
-        const dLng = half/(111320*Math.cos(r.lat*Math.PI/180));
-        const bounds=[[r.lat-dLat,r.lng-dLng],[r.lat+dLat,r.lng+dLng]];
-        const layer=L.rectangle(bounds,{color:'#ff3b30',weight:2,fillColor:'#ff3b30',fillOpacity:0.25}).addTo(map);
-        rectLayers.push(layer);
-      });
-    };
-
-    // 채택된 우회 웨이포인트(파란 점)
-    let wpLayers=[];
-    window.drawBypassWps=(wps)=>{
-      wpLayers.forEach(l=>map.removeLayer(l)); wpLayers.length=0;
-      if(!Array.isArray(wps)) return;
-      wps.forEach(p=>{
-        const l=L.circleMarker([p.lat,p.lng],{radius:4,color:'#0076ff',weight:2,fillColor:'#0076ff',fillOpacity:0.9}).addTo(map);
-        wpLayers.push(l);
-      });
-    };
-
-    if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type:'ready' }));
+  // Route
+  function drawRoute(latlngs){
+    routeLayer.setLatLngs((latlngs||[]).map(p=>[p.lat,p.lng]));
+    if (latlngs && latlngs.length) {
+      const b = routeLayer.getBounds(); map.fitBounds(b.pad(0.15));
     }
-  </script>
+  }
+
+  // Hazards (red translucent circles)
+  function setHazards(items){
+    hazardLayer.clearLayers();
+    (items||[]).forEach(h=>{
+      const r = typeof h.radius==='number' ? h.radius : 20;
+      L.circle([h.lat,h.lng], {
+        radius: r,
+        color:'#ff3b30',
+        weight:2,
+        fillColor:'#ff3b30',
+        fillOpacity:0.25
+      }).addTo(hazardLayer);
+    });
+  }
+
+  // Click → RN
+  function post(msg){ (window.ReactNativeWebView||window).postMessage(JSON.stringify(msg)); }
+  map.on('click', (e)=> post({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng }));
+
+  // Expose
+  window.setMyLocation = setMyLocation;
+  window.clearMyLocation = clearMyLocation;
+  window.drawRoute = drawRoute;
+  window.setHazards = setHazards;
+</script>
 </body>
 </html>
