@@ -2,12 +2,22 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
   <style>
-    html,body{height:100%;margin:0}
-    #map{position:fixed;inset:0}
+    html, body { height: 100%; margin: 0; }
+    #map { position: fixed; inset: 0; }
   </style>
   <title>OneStep Map</title>
 </head>
@@ -15,46 +25,73 @@
   <div id="map"></div>
 
   <script>
-    // 1) 지도
-    const map = L.map('map').setView([35.115,129.040], 15);
+    // 1) 지도 생성
+    const map = L.map('map', { zoomControl: true }).setView([35.115, 129.040], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+      maxZoom: 20,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+    // 크기 보정
+    setTimeout(() => map.invalidateSize(), 0);
 
-    // 2) 클릭 이벤트 → RN(WebView)
-    map.on('click', (e)=>{
-      const msg = JSON.stringify({type:'click', lat:e.latlng.lat, lng:e.latlng.lng});
+    // 2) 지도 클릭 → RN(WebView)로 전달
+    map.on('click', (e) => {
+      const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
+      const msg = JSON.stringify(payload);
       if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
-      else console.log(msg);
+      else console.log('[click]', payload);
     });
 
-    // 3) 경로 그리기 / 지우기
+    // 3) 경로 그리기 API
     let routeLine = null;
-    window.drawRoute = (pts=[])=>{
-      try{
+    window.drawRoute = (pts) => {
+      try {
         if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-        if (!Array.isArray(pts) || !pts.length) return;
-        routeLine = L.polyline(pts.map(p=>[p.lat,p.lng]), {weight:4, color:'#2B6FF9'}).addTo(map);
-        map.fitBounds(routeLine.getBounds(), {padding:[32,32]});
-      }catch(e){ console.error('drawRoute error', e); }
+        if (!Array.isArray(pts) || pts.length < 2) return;
+        const latlngs = pts.map(p => [p.lat, p.lng]);
+        routeLine = L.polyline(latlngs, { weight: 5, opacity: 0.9 }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [48, 48] });
+      } catch (e) {
+        console.error('drawRoute error:', e);
+      }
     };
 
-    // 4) 내 위치 마커(토글)
+    // 4) 현재 위치 마커 (아이콘 명시)
+    const MyIcon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
     let myMarker = null;
-    window.setMyLocation = (lat, lng, center=true)=>{
-      try{
+    // center=true면 지도 센터로 이동
+    window.setMyLocation = (lat, lng, center = false) => {
+      try {
+        if (typeof lat !== 'number' || typeof lng !== 'number') return;
         if (myMarker) myMarker.remove();
-        myMarker = L.marker([lat,lng]).addTo(map);
-        if (center) map.setView([lat,lng], 17, { animate:true });
-      }catch(e){ console.error('setMyLocation error', e); }
-    };
-    window.clearMyLocation = ()=>{
-      if (myMarker) { myMarker.remove(); myMarker = null; }
+        myMarker = L.marker([lat, lng], { icon: MyIcon, zIndexOffset: 500 }).addTo(map);
+        if (center) {
+          const targetZoom = Math.max(map.getZoom(), 17);
+          map.setView([lat, lng], targetZoom, { animate: true });
+        }
+      } catch (e) {
+        console.error('setMyLocation error:', e);
+      }
     };
 
-    // 5) 준비 신호(선택)
+    window.clearMyLocation = () => {
+      try {
+        if (myMarker) { myMarker.remove(); myMarker = null; }
+      } catch (e) {}
+    };
+
+    // 5) 준비 완료 신호 (선택)
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
     }
   </script>
 </body>
