@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html, body { height: 100%; margin: 0; }
@@ -14,61 +14,71 @@
 <body>
   <div id="map"></div>
   <script>
-    const map = L.map('map').setView([35.115,129.040], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom: 19, attribution:'&copy; OpenStreetMap contributors'
+    // 1) 지도
+    const map = L.map('map', { zoomControl: true }).setView([35.115, 129.040], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 클릭 → RN에 전달
-    map.on('click',(e)=>{
-      const msg = JSON.stringify({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng });
+    // 2) RN으로 클릭 전달
+    map.on('click', (e) => {
+      const payload = { type: 'click', lat: e.latlng.lat, lng: e.latlng.lng };
+      const msg = JSON.stringify(payload);
       if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
-      else console.log('[click]', msg);
+      else console.log('[click]', payload);
     });
 
-    // 경로
-    let routeLine=null;
-    window.drawRoute = (pts=[])=>{
-      try{
-        if(routeLine) { map.removeLayer(routeLine); routeLine=null; }
-        if(!Array.isArray(pts) || pts.length<2) return;
-        const latlngs = pts.map(p=>[p.lat,p.lng]);
-        routeLine = L.polyline(latlngs,{weight:5, color:'#1d4ed8'}).addTo(map);
-        map.fitBounds(routeLine.getBounds(), { padding:[30,30] });
-      }catch(err){ console.error('drawRoute',err); }
+    // 3) 경로 폴리라인
+    let routeLine = null;
+    window.drawRoute = (pts) => {
+      try {
+        if (!Array.isArray(pts)) return;
+        if (routeLine) map.removeLayer(routeLine);
+        if (pts.length === 0) return;
+        const latlngs = pts.map(p => [p.lat, p.lng]);
+        routeLine = L.polyline(latlngs, { weight: 5, color: '#1e73ff' }).addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [32, 32] });
+      } catch (e) { console.error('drawRoute error:', e); }
     };
 
-    // 내 위치
-    let myMarker=null;
-    window.setMyLocation=(lat,lng,center=true)=>{
-      try{
-        if(myMarker) myMarker.remove();
-        myMarker = L.circleMarker([lat,lng],{radius:6,color:'#2563eb',fillColor:'#3b82f6',fillOpacity:1,weight:3}).addTo(map);
-        if(center) map.setView([lat,lng], Math.max(map.getZoom(), 17), {animate:true});
-      }catch(e){ console.error('setMyLocation',e); }
+    // 4) 현재 위치 마커
+    let myMarker = null;
+    window.setMyLocation = (lat, lng, center = true) => {
+      try {
+        if (typeof lat !== 'number' || typeof lng !== 'number') return;
+        if (myMarker) myMarker.remove();
+        myMarker = L.marker([lat, lng]).addTo(map);
+        if (center) map.setView([lat, lng], Math.max(map.getZoom(), 17), { animate: true });
+      } catch (e) { console.error('setMyLocation error:', e); }
     };
-    window.clearMyLocation=()=>{ if(myMarker){ myMarker.remove(); myMarker=null; } };
+    window.clearMyLocation = () => { if (myMarker) { myMarker.remove(); myMarker = null; } };
 
-    // 🔴 위험지점(반투명 원)
-    const hazardGroup = L.layerGroup().addTo(map);
-    window.showHazards = (arr=[])=>{
-      try{
-        hazardGroup.clearLayers();
-        arr.forEach(h=>{
-          if(typeof h.lat!=='number'||typeof h.lng!=='number') return;
-          const r = Number(h.r||35);
-          L.circle([h.lat,h.lng],{
-            radius:r, color:'#ff3b30', weight:1,
-            fillColor:'#ff3b30', fillOpacity:0.25
-          }).addTo(hazardGroup);
+    // 5) 위험원(빨간 원) 오버레이
+    let avoidLayers = [];
+    window.drawAvoids = (circles) => {
+      try {
+        // 모두 제거
+        for (const c of avoidLayers) map.removeLayer(c);
+        avoidLayers.length = 0;
+        if (!Array.isArray(circles) || circles.length === 0) return;
+
+        circles.forEach(c => {
+          const layer = L.circle([c.lat, c.lng], {
+            radius: c.r,
+            color: '#ff3b30',
+            weight: 2,
+            opacity: 0.9,
+            fillColor: '#ff3b30',
+            fillOpacity: 0.28
+          }).addTo(map);
+          avoidLayers.push(layer);
         });
-      }catch(e){ console.error('showHazards',e); }
+      } catch (e) { console.error('drawAvoids error:', e); }
     };
-    window.clearHazards = ()=>{ hazardGroup.clearLayers(); };
 
-    // 준비 신호
+    // 6) 준비 신호
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type:'ready' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
     }
   </script>
 </body>
