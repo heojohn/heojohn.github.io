@@ -19,14 +19,12 @@
       maxZoom:19, attribution:'&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 지도 클릭 → RN로 전송
     map.on('click', e => {
       const msg = JSON.stringify({ type:'click', lat:e.latlng.lat, lng:e.latlng.lng });
       if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(msg);
       else console.log(msg);
     });
 
-    // 경로 그리기
     let routeLine;
     window.drawRoute = (pts=[])=>{
       try{
@@ -37,7 +35,6 @@
       }catch(e){ console.error('drawRoute', e); }
     };
 
-    // 내 위치 마커
     let myMarker;
     window.setMyLocation = (lat,lng,center=true)=>{
       try{
@@ -46,24 +43,25 @@
         if(center) map.setView([lat,lng], 17, { animate:true });
       }catch(e){ console.error('setMyLocation',e); }
     };
-    window.clearMyLocation = ()=>{ if(myMarker) { myMarker.remove(); myMarker=null; } };
+    window.clearMyLocation = ()=>{ if(myMarker){ myMarker.remove(); myMarker=null; } };
 
-    // 🔴 회피지형 원 레이어
-    const typeColors = { stairs:'#FF3B30', slope:'#FF9500', overpass:'#7B61FF', etc:'#FF3B30' };
-    const avoidGroup = L.layerGroup().addTo(map);
-    window.setAvoidCircles = (items)=>{
+    const avoidLayer = L.layerGroup().addTo(map);
+    // ★ 앱이 호출하는 함수명
+    window.setAvoids = (items)=>{
       try{
-        avoidGroup.clearLayers();
+        avoidLayer.clearLayers();
         if(!Array.isArray(items)) return;
         items.forEach(p=>{
-          const color = typeColors[p.type] || '#FF3B30';
+          const r = Number(p.r) || 18;
           L.circle([p.lat,p.lng], {
-            radius: p.radius || 18,
-            color, weight:2,
-            fillColor: color, fillOpacity: 0.25
-          }).addTo(avoidGroup);
+            radius: r,
+            color: '#FF3B30',
+            weight: 2,
+            fillColor: '#FF3B30',
+            fillOpacity: 0.22
+          }).addTo(avoidLayer);
         });
-      }catch(e){ console.error('setAvoidCircles', e); }
+      }catch(e){ console.error('setAvoids', e); }
     };
   </script>
 </body>
