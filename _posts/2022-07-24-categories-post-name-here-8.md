@@ -1,19 +1,19 @@
 ---
-title: "[포스팅 예시] 이곳에 제목을 입력하세요"
-excerpt: "본문의 주요 내용을 여기에 입력하세요"
+title: "[Dive2025 카카오모빌리티] "한걸음 지도" "
+excerpt: "한걸음 지도 기획"
 
 categories:
   - Effecter
 tags:
   - [tag1, tag2]
 
-permalink: /ProjectEffceter/post-name-here-7/
+permalink: /ProjectDive2025/readme/
 
 toc: true
 toc_sticky: true
 
-date: 2022-09-23
-last_modified_at: 2022-09-23
+date: 2025-08-26
+last_modified_at: 2025-08-26
 ---
 
 ## 🦥 본문
