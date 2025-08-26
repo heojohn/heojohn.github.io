@@ -1,0 +1,27 @@
+---
+title: "한걸음 지도 앱 개발"
+excerpt: "react native (expo)"
+
+categories:
+  - Dive2025
+tags:
+  - [tag1, tag2]
+
+permalink: /Dive2025/app/
+
+toc: true
+toc_sticky: true
+
+date: 2025-08-26
+last_modified_at: 2025-08-26
+---
+
+# <mark>부산광역시X카카오모빌리티 발제</mark>
+## 길안내 API,내비 SDK를 활용해 부산광역시에 필요한 길안내 서비스 구현
+[발제사 자료](https://drive.google.com/file/d/11ekxaXqmSJMui62UjYZE_7XVNngIKQxP/view?usp=sharing)
+
+---
+
+# 한걸음 지도 앱 개발 
+[Github-Repo](https://github.com/heojohn/Onestep-Map)
+
