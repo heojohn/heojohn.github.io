@@ -1,5 +1,5 @@
 ---
-title: "Project Dive2025"
+title: "Dive2025"
 layout: category
 permalink: /categories/Dive2025/
 author_profile: true
