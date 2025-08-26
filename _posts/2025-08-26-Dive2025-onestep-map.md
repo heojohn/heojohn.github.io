@@ -1,6 +1,6 @@
 ---
-title: "Dive2025 카카오모빌리티 한걸음 지도"
-excerpt: "기획서"
+title: "Dive2025 한걸음 지도"
+excerpt: "부산광역시X카카오모빌리티 발제"
 
 categories:
   - Dive2025
