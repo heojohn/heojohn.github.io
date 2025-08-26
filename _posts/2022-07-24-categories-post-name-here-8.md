@@ -3,7 +3,7 @@ title: "Dive2025 카카오모빌리티 한걸음 지도"
 excerpt: "기획서"
 
 categories:
-  - Effecter
+  - DIve2025
 tags:
   - [tag1, tag2]
 
