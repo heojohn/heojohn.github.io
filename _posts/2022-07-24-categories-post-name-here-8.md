@@ -7,7 +7,7 @@ categories:
 tags:
   - [tag1, tag2]
 
-permalink: /ProjectDive2025/readme/
+permalink: /Dive2025/readme/
 
 toc: true
 toc_sticky: true
