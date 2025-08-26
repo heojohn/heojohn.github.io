@@ -16,6 +16,16 @@ date: 2025-08-26
 last_modified_at: 2025-08-26
 ---
 
+# <mark>부산광역시X카카오모빌리티 발제</mark>
+## 길안내 API,내비 SDK를 활용해 부산광역시에 필요한 길안내 서비스 구현
+[발표자료] (file:///C:/Users/SAMSUNG/AppData/Local/Temp/5463af96-d3b7-4757-a60e-1179ea0cde6a_%EC%B9%B4%EC%B9%B4%EC%98%A4%EB%AA%A8%EB%B9%8C%EB%A6%AC%ED%8B%B0_sdk_ppt.zip.e6a/%EC%B9%B4%EC%B9%B4%EC%98%A4%EB%AA%A8%EB%B9%8C%EB%A6%AC%ED%8B%B0_sdk_ppt/(%EB%B0%9C%ED%91%9C)%20%EB%8B%A4%EC%9D%B4%EB%B8%8C%20%EC%98%A4%ED%8B%B0%EC%9E%90%EB%A3%8C%20vf.pdf)
+
+
+
+
+
+---
+
 # 한걸음 지도 서비스 기획안
 
 
@@ -94,4 +104,4 @@ last_modified_at: 2025-08-26
     - 육교, 계단, 급경사 데이터
     - 부산시 인구 데이터
     - 지형 데이터
-    
+
