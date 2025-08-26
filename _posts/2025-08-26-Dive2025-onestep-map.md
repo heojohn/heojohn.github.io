@@ -82,13 +82,16 @@ last_modified_at: 2025-08-26
 
 - **프레임워크:** React Native (Expo)
 - **핵심 API:**
-    - 카카오 길찾기 API (도보)
-    - 카카오내비 App-to-App 연동
+    - 카카오 길찾기 API (도보) -> 최단,최소시간 경로를 제공 받을 수 있음
+
+    - 다중 경유지 길찾기, 다중 출발지 길찾기, 다중 목적지 길찾기
 - **주요 라이브러리:**
     - `react-native-maps` (지도 시각화)
     - `expo-location` (사용자 위치)
-    - `expo-speech` (TTS 음성 경고)
     - `axios` (API 통신)
 - **데이터베이스:** Firebase Firestore (사용자 제보 실시간 저장 및 조회) cloud funtions사용
 - **활용 데이터:**
-    - 우리가 조사한 거
+    - 육교, 계단, 급경사 데이터
+    - 부산시 인구 데이터
+    - 지형 데이터
+    
