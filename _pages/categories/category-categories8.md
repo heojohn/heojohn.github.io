@@ -1,9 +1,9 @@
 ---
-title: "Project Effecter"
+title: "Project Dive2025"
 layout: category
-permalink: /categories/ProjectEffecter/
+permalink: /categories/ProjectDive2025/
 author_profile: true
-taxonomy: Effecter
+taxonomy: Dive2025
 sidebar:
   nav: "categories"
 ---
