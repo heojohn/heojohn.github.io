@@ -1,9 +1,9 @@
 ---
-title: "Project Effecter"
+title: "Project Effects Pedal"
 layout: category
-permalink: /categories/ProjectEffecter/
+permalink: /categories/ProjectEffectsPedal/
 author_profile: true
-taxonomy: Effecter
+taxonomy: Effects
 sidebar:
   nav: "categories"
 ---
