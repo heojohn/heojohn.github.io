@@ -40,11 +40,12 @@ categories:
 
   - title: "Project"
     children:
-      - title: "Effects Pedal"
+      - title: "EffectsPedal"
         url: /categories/EffectsPedal/
       - title: "Dive2025"
         url: /categories/Dive2025/
     
+
 
 
 
