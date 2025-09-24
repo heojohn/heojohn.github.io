@@ -1,7 +1,7 @@
 ---
 title: "Project Effects Pedal"
 layout: category
-permalink: /categories/ProjectEffectsPedal/
+permalink: /categories/EffectsPedal/
 author_profile: true
 taxonomy: EffectsPedal
 sidebar:
