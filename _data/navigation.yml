@@ -36,7 +36,14 @@ categories:
       - title: "MicroProcesseor"
         url: /categories/Microprocessor/
       - title: "Microprocessor Architecture"
-        url: /categories/Microprocessor Architecture/
+        url: /categories/MicroprocessorArchitecture/
+
+  - title: "Digital Logic"
+    children:
+      - title: "Digital Logic"
+        url: /categories/DigitalLogic/
+      - title: "Digital Logic Design"
+        url: /categories/DigitalLogicDesign/
 
   - title: "Project"
     children:
@@ -45,6 +52,7 @@ categories:
       - title: "Dive2025"
         url: /categories/Dive2025/
     
+
 
 
 
