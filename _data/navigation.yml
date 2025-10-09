@@ -1,6 +1,6 @@
 # main links
 main:
-  - title: "Home"
+  - title: "Home" 
     url: https://heojohn.github.io/
 
   - title: "About"
@@ -52,6 +52,7 @@ categories:
       - title: "Dive2025"
         url: /categories/Dive2025/
     
+
 
 
 
