@@ -39,7 +39,7 @@ categories:
         url: /categories/MicroprocessorArchitecture/
         
   - title: "Digital Logic"
-    children:
+    children: 
       - title: "Digital Logic"
         url: /categories/DigitalLogic/
       - title: "Digital Logic Design"
