@@ -1865,3 +1865,555 @@ Move({s1}, b) = ?
 
 3. **기존 상태면 새로 추가하지 않는다**  
    `{s1,s2}`는 이미 있었기 때문에 추가하지 않고 전이만 적는다.
+
+
+
+   # COMP321 Compiler — Lexical Analysis Part 3
+**Kyungpook National University | Hwisoo So | Spring 2026**
+
+---
+
+## 📋 51페이지 — {s1}에서 b 계산
+
+### T = { s1 }  α = b
+현재 상태 `{s1}`에서 입력 **b**에 대해 계산한다.
+
+#### 계산 과정
+
+```
+Move({s1}, b):
+  s1에서 b → s1 → s1
+
+결과: {s1}
+```
+
+#### ε-closure({s1}) = {s1}
+추가 ε 이동 없음 → 그대로 `{s1}`
+
+#### 🔥 최종 결과
+
+```
+δ({s1}, b) = {s1}
+```
+
+#### 의미 — 완전한 루프형 상태
+
+`{s1}` 상태는:
+
+| 입력 | 결과 |
+|------|------|
+| a | `{s1,s2}` |
+| b | `{s1}` ← **self-loop** |
+
+---
+
+## 📋 52페이지 — {s1} 전이 완성
+
+### δ 전이표 반영
+
+| 상태 | a | b |
+|------|---|---|
+| `{s0,s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s2}` | `{s1,s2}` | `{s1,s3}` |
+| `{s1}` | `{s1,s2}` | `{s1}` |
+
+`{s1}` 상태 전이 **완성**
+
+#### 🔥 핵심
+
+```
+{s1} → a → {s1,s2}
+{s1} → b → {s1}   (self-loop)
+```
+
+이 상태는 완전한 **"루프형 상태"** — b를 계속 읽어도 자기 자신에 머문다.
+
+---
+
+## 📋 53페이지 — 아직 미처리 상태 남아있음
+
+### 현재 처리 현황
+
+```
+Dstates = {
+  {s0,s1},    ✔ 완료
+  {s1,s2},    ✔ 완료
+  {s1},       ✔ 완료
+  {s1,s3}     ❌ 미처리
+}
+```
+
+아직 처리 안 된 상태가 남아 있다 → 알고리즘 계속 진행
+
+#### 🔥 핵심
+
+```
+다음 처리 대상: T = {s1,s3}
+```
+
+---
+
+## 📋 54페이지 — {s1,s3}에서 a 계산
+
+### T = { s1, s3 }  α = a
+현재 상태 `{s1,s3}`에서 입력 **a**에 대해 계산한다.
+
+#### 계산 과정
+
+```
+Move({s1,s3}, a):
+  s1에서 a → s1 → s1
+           → s1 → s2
+  s3에서 a → 이동 없음
+
+결과: {s1, s2}
+```
+
+#### ε-closure({s1,s2}) = {s1,s2}
+추가 ε 이동 없음
+
+#### 🔥 결과
+
+```
+δ({s1,s3}, a) = {s1,s2}
+```
+
+#### 의미
+
+`{s1,s3}`에서 a를 읽으면 다시 **반복 상태** `{s1,s2}`로 돌아간다.
+
+---
+
+## 📋 55페이지 — {s1,s3}에서 b 계산 (⭐ 핵심)
+
+### T = { s1, s3 }  α = b
+현재 상태 `{s1,s3}`에서 입력 **b**에 대해 계산한다.
+
+#### 계산 과정
+
+```
+Move({s1,s3}, b):
+  s1에서 b → s1 → s1
+  s3에서 b → s3 → s4  ← accepting state!
+
+결과: {s1, s4}
+```
+
+#### ε-closure({s1,s4}) = {s1,s4}
+추가 ε 이동 없음
+
+#### 🔥 결과
+
+```
+δ({s1,s3}, b) = {s1,s4}
+```
+
+---
+
+#### ⭐ 매우 중요한 포인트 — accepting state 등장
+
+| 상태 | 의미 |
+|------|------|
+| s1 | 아직 반복 가능 |
+| s4 | **accepting state** |
+
+즉 `{s1,s4}`는:
+- 아직 반복도 가능 (s1)
+- 동시에 **accept 상태 포함** (s4)
+
+→ **"이 문자열은 accept 가능 상태에 도달했다"**
+
+---
+
+## 🔥 51~55페이지 전체 흐름 요약
+
+| 단계 | 내용 |
+|------|------|
+| 1. `{s1}` 처리 완료 | a → `{s1,s2}` / b → `{s1}` (self-loop) |
+| 2. 다음 처리 | T = `{s1,s3}` |
+| 3. a 처리 | `{s1,s3}` → a → `{s1,s2}` |
+| 4. b 처리 | `{s1,s3}` → b → `{s1,s4}` ← **accepting 포함** |
+| 5. 새 상태 등장 | `{s1,s4}` |
+
+#### 현재까지 누적 전이표
+
+| 상태 | a | b |
+|------|---|---|
+| `{s0,s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s2}` | `{s1,s2}` | `{s1,s3}` |
+| `{s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s3}` | `{s1,s2}` | `{s1,s4}` |
+
+#### 이 구간 핵심 포인트
+
+| 개념 | 설명 |
+|------|------|
+| accepting state 판단 기준 | DFA 상태 안에 accepting NFA 상태 포함하면 accept |
+| `{s1}` | 순수 반복 상태 (self-loop) |
+| `{s1,s2}` | 중간 단계 상태 |
+| `{s1,s3}` | accept 직전 상태 |
+| `{s1,s4}` | **accept 상태** |
+
+---
+
+## 📋 56페이지 — {s1,s4} 전이 계산
+
+### T = { s1, s3 }  α = b → {s1,s4} 확정
+
+`{s1, s3}`에서 b를 읽으면 `{s1, s4}`로 간다.
+
+```
+Move({s1,s3}, b):
+  s1에서 b → s1
+  s3에서 b → s4
+
+결과: {s1, s4}
+```
+
+이 순간이 아주 중요하다. 왜냐하면 이제 DFA 안에 **accepting state가 생기기 시작**하기 때문이다.
+
+#### 🔥 핵심
+
+```
+δ({s1,s3}, b) = {s1,s4}
+```
+
+---
+
+## 📋 57페이지 — U = {s1, s4} 확정
+
+### U = { s1, s4 }
+다음 상태 U는 **`{s1, s4}`**이다.
+
+`{s1,s4}`는 그냥 새로운 상태가 아니라 **accepting NFA state를 포함하는 DFA 상태**다.
+
+즉 DFA 관점에서 이 상태는 나중에 **accepting state**가 된다.
+
+---
+
+## 📋 58페이지 — {s1,s4} Dstates에 추가
+
+### U not yet in Dstates → add.
+`{s1,s4}`는 아직 Dstates에 없으므로 **추가**한다.
+
+#### Dstates 업데이트
+
+```
+이전:
+Dstates = { {s0,s1}, {s1,s2}, {s1}, {s1,s3} }
+
+이후:
+Dstates = {
+  {s0,s1},
+  {s1,s2},
+  {s1},
+  {s1,s3},
+  {s1,s4}   ← 새로 추가
+}
+```
+
+subset construction에서 항상 해야 하는 일:
+
+1. Move 계산
+2. ε-closure 적용
+3. 기존 상태인지 확인
+4. **없으면 추가** ← 지금 여기
+
+---
+
+## 📋 59페이지 — 전이표 업데이트 확정
+
+### 현재 δ 전이표
+
+| 상태 | a | b |
+|------|---|---|
+| `{s0,s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s2}` | `{s1,s2}` | `{s1,s3}` |
+| `{s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s3}` | `{s1,s2}` | `{s1,s4}` |
+| `{s1,s4}` | | |
+
+`{s1,s3}` --b--> `{s1,s4}` 반영 완료.
+
+이제 남은 미처리 상태: **`{s1,s4}` 하나뿐** → 알고리즘 거의 끝
+
+---
+
+## 📋 60페이지 — 마지막 상태 {s1,s4} 처리
+
+### T = { s1, s4 } is the last unmarked state.
+`{s1,s4}`는 **마지막 미처리 상태**이다.
+
+> "Reading an a takes us to {s1, s2}. Reading a b takes us to {s1}. Those two transitions are added to δ."
+
+#### α = a 계산
+
+```
+Move({s1,s4}, a):
+  s1에서 a → s1, s2
+  s4에서 a → 이동 없음
+
+결과: {s1, s2}
+→ δ({s1,s4}, a) = {s1,s2}
+```
+
+#### α = b 계산
+
+```
+Move({s1,s4}, b):
+  s1에서 b → s1
+  s4에서 b → 이동 없음
+
+결과: {s1}
+→ δ({s1,s4}, b) = {s1}
+```
+
+---
+
+#### 의미 설명
+
+`{s1,s4}`는 accept 상태를 포함하지만, 입력을 더 읽으면 다시 비accept 상태로 갈 수도 있다. 이게 자연스러운 이유:
+
+> DFA의 accept 여부는 **"현재까지 읽은 문자열이 accept되는가"**를 뜻하지,  
+> "여기서부터 영원히 accept 상태에 고정된다"는 뜻은 아니기 때문이다.
+
+즉 **accepting state도 다른 입력을 받으면 다른 상태로 전이할 수 있다**.
+
+---
+
+## 📋 61페이지 — 알고리즘 종료
+
+### No more unmarked states in Dstates. The algorithm stops.
+Dstates 안에 더 이상 미처리 상태가 없다. **알고리즘이 종료**된다.
+
+#### 최종 DFA 상태 집합
+
+```
+{s0,s1}
+{s1,s2}
+{s1}
+{s1,s3}
+{s1,s4}
+```
+
+각 상태에 대해 입력 a, b 전이가 **모두 채워졌다** → subset construction 완전히 끝
+
+---
+
+## 📋 62페이지 — 최종 DFA 완성 ⭐
+
+### The DFA for the above transition function δ
+
+> "All DFA states that contain an accepting NFA state become accepting states in the DFA!"  
+> accepting NFA state를 포함하는 모든 DFA 상태는 DFA에서도 **accepting state**가 된다.
+
+#### 최종 전이표 (완성본)
+
+| 상태 | a | b |
+|------|---|---|
+| `{s0,s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s2}` | `{s1,s2}` | `{s1,s3}` |
+| `{s1}` | `{s1,s2}` | `{s1}` |
+| `{s1,s3}` | `{s1,s2}` | `{s1,s4}` |
+| `{s1,s4}` | `{s1,s2}` | `{s1}` |
+
+---
+
+#### Accepting state 판정
+
+NFA의 accepting state = **s4**
+
+따라서 s4를 포함하는 DFA 상태만 accepting:
+
+| DFA 상태 | accepting 여부 |
+|----------|--------------|
+| `{s0,s1}` | ❌ |
+| `{s1,s2}` | ❌ |
+| `{s1}` | ❌ |
+| `{s1,s3}` | ❌ |
+| `{s1,s4}` | ✅ **accepting** |
+
+---
+
+#### 🖼 최종 DFA 그림 (상태 이름 단순화)
+
+슬라이드에는 집합 이름을 줄여서 그린다:
+
+| 집합 상태 | 단순 이름 |
+|----------|----------|
+| `{s0,s1}` | S0 |
+| `{s1}` | S1 |
+| `{s1,s2}` | S1S2 |
+| `{s1,s3}` | S1S3 |
+| `{s1,s4}` | S1S4 |
+
+주요 화살표:
+
+```
+S0     --a--> S1S2
+S0     --b--> S1
+S1S2   --a--> S1S2  (self-loop)
+S1S2   --b--> S1S3
+S1     --a--> S1S2
+S1     --b--> S1    (self-loop)
+S1S3   --a--> S1S2
+S1S3   --b--> S1S4
+S1S4   --a--> S1S2
+S1S4   --b--> S1
+```
+
+이 그림은 앞에서 수십 페이지 동안 계산한 결과를 **한 장으로 압축한 최종 DFA 완성본**이다.
+
+---
+
+## 📋 63페이지 — Extra: Executing JLex
+
+### Extra: Executing JLex
+**추가: JLex 실행하기**
+
+> **Note: this is not in the range of midterm / final exam. Just for practice.**  
+> **주의: 이것은 중간/기말 시험 범위가 아니다. 연습용일 뿐이다.**
+
+이 페이지 이후는 JLex를 실제로 실행해 보는 방법 소개 파트다.
+
+---
+
+## 📋 64페이지 — JLex 실행 환경 준비
+
+### Running JLex on a Sample Scanner Spec
+**샘플 scanner 명세에 대해 JLex 실행하기**
+
+#### 준비 단계
+
+| 단계 | 내용 |
+|------|------|
+| 1 | LMS에서 `jlex_examples.zip` 다운로드 및 압축 해제 |
+| 2 | JLex 다운로드 — **Source Code** 받기 |
+| 3 | JLex의 `Main.java`를 `jlex_examples`의 JLex 폴더 안에 넣기 |
+| 4 | **User Manual** 문서 참고 가능 |
+| 5 | **JDK 필요** |
+
+아직 scanner를 돌리는 단계가 아니라 **사전 세팅 단계**다.
+
+---
+
+## 📋 65페이지 — JLex 컴파일 및 실행
+
+### Running JLex on a Sample Scanner Spec
+
+#### JLex 컴파일
+
+```bash
+# JLex 디렉터리로 이동 후
+javac Main.java
+```
+
+#### Scanner.l에서 scanner 코드 생성
+
+```bash
+# JLex의 상위 디렉터리로 이동 후
+java JLex.Main Scanner.l
+```
+
+- **Scanner.l**: JLex에 넘기는 **scanner 명세 파일**
+- 이 명령이 실행되면 JLex가 이론 순서대로 처리한다:
+
+```
+user code 처리
+declarations 처리
+lexical rules 처리
+NFA 생성
+DFA transition table 생성
+minimization
+lexical analyzer code 출력
+```
+
+즉 **우리가 배운 이론 순서 그대로** 콘솔에 나타난다:
+
+```
+spec → NFA → DFA → minimization → code output
+```
+
+---
+
+## 📋 66페이지 — Scanner 컴파일 및 테스트
+
+### Scanner 컴파일 및 실행
+
+#### handler와 함께 컴파일
+
+```bash
+javac Scanner.l.java Test.java
+```
+
+- **Test.java**: handler 파일
+- 이 명령으로 `input.txt`를 스캔할 준비가 된다.
+
+#### scanner 실행
+
+```bash
+java Test
+```
+
+#### 실제 출력 예시
+
+```
+Token(IF, "if", 0)
+Token(ID, "spelling", 3)
+Token(LESS, "<", 6)
+Token(LESS_EQ, "<=", 17)
+```
+
+JLex spec에서 정의했던 규칙들이 실제 입력 파일에 적용되어, 문자열이 토큰으로 분류된 결과가 출력된다.
+
+이 장면은 **"정규표현식 명세 → scanner 생성 → 입력 스캔 → token 출력"**이 실제로 동작한다는 것을 보여주는 최종 실습 예시다.
+
+> `Scanner2.l`도 확인해 볼 수 있다.
+
+---
+
+## 🔥 56~66페이지 전체 핵심 요약
+
+### 1. Subset Construction 최종 마무리
+
+마지막 미처리 상태 `{s1,s4}`까지 처리하면 더 이상 새 상태가 생기지 않고 알고리즘이 끝난다. 최종 DFA 전이표와 DFA 그림이 62페이지에 정리된다.
+
+### 2. Accepting State 판정 규칙 (⭐ 시험 핵심)
+
+> **DFA 상태 안에 accepting NFA state가 포함되어 있으면 그 DFA 상태는 accepting이다.**
+
+이 예에서는 `{s1,s4}`가 accepting state다.
+
+### 3. 63페이지 이후는 실습 파트
+
+JLex 설치, 컴파일, 실행, 테스트 방법을 보여주는 구간이며, 슬라이드에 **명시적으로 시험범위가 아니라고** 적혀 있다.
+
+---
+
+## 🔥 전체 강의 시험 핵심 정리
+
+### 계산할 줄 알아야 하는 것
+
+| 항목 | 내용 |
+|------|------|
+| `Move(S, a)` | 상태 집합 S에서 a로 이동 가능한 상태들의 합집합 |
+| `ε-closure(S)` | ε 전이로 도달 가능한 모든 상태 포함 |
+| 새 DFA 상태 생성 | 결과 상태가 Dstates에 없으면 추가 |
+| Accepting DFA state 판정 | 집합 안에 NFA accepting state 포함 여부 확인 |
+
+### 시험 범위 정리
+
+| 범위 | 내용 |
+|------|------|
+| ✅ 시험 범위 | RE → NFA, NFA → DFA (subset construction), DFA 최소화, scanner generator 이론 |
+| ❌ 시험 범위 아님 | JLex 실행 명령, 파일 배치, 콘솔 실행 절차 (63페이지 이후) |
+
+### 중요도 정리
+
+| 매우 중요 | 덜 중요 (실습용) |
+|----------|----------------|
+| `Move`, `ε-closure` 계산 | JLex 실행 명령어 |
+| DFA 상태 확장 과정 | 파일 구조 배치 |
+| accepting state 판정 | 콘솔 출력 해석 |
+| subset construction 흐름 전체 | |
+
