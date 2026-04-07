@@ -8,7 +8,7 @@ tags:
   - tag1
   - tag2
 
-permalink: /Compiler/2/
+permalink: /Compiler/syntax1/
 
 toc: true
 toc_sticky: true
