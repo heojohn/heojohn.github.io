@@ -1,5 +1,5 @@
 ---
-title: "Lexical Analysis2"
+title: "Lexical Analysis2-1"
 excerpt: ""
 
 categories:
@@ -8,7 +8,7 @@ tags:
   - paser
   - scanner
 
-permalink: /Compiler/lexicalanalysis2/
+permalink: /Compiler/lexicalanalysis2-1/
 
 toc: true
 toc_sticky: true
