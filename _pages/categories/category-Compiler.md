@@ -1,9 +1,9 @@
 ---
-title: "C/C++"
+title: "Compiler"
 layout: category
-permalink: /categories/C/
+permalink: /categories/Compiler/
 author_profile: true
-taxonomy: C
+taxonomy: Compiler
 sidebar:
   nav: "categories"
 ---
