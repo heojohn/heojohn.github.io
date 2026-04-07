@@ -30,6 +30,11 @@ categories:
     
   - title: "Operating System"
     url: /categories/OperatingSystem/
+
+    
+  - title: "Compiler"
+    url: /categories/Compiler/
+    
     
   - title: "MicroProcessor"
     children:
@@ -52,9 +57,6 @@ categories:
       - title: "Dive2025"
         url: /categories/Dive2025/
 
-  - title: "Compiler"
-    url: /categories/Compiler/
-    
 
 
 
