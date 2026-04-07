@@ -1436,3 +1436,1269 @@ E → a | E + E | E * E
 **6. 복잡도**
 > 시간: O(n³) / 공간: O(n²)
 
+
+
+
+# COMP321 Compiler — Syntax Analysis 2 (21~42페이지)
+**Kyungpook National University | Hwisoo So | Spring 2026**
+
+---
+
+## 📋 21페이지
+
+### Illustration
+
+> **해석:** 예시
+
+---
+
+**Initial graph: the input (terminals)**
+
+> **해석:** 초기 그래프 = 입력
+
+---
+
+**Repeat: add non-terminal edges until no more can be added**
+
+> **해석:** 더 이상 추가할 수 없을 때까지 비단말을 추가
+
+---
+
+**An edge is added when adjacent edges form RHS of a grammar production**
+
+> **해석:** 인접한 요소가 RHS를 만족하면 추가
+
+---
+
+#### 🖼 그림 설명 (핵심)
+
+입력:
+
+```
+a + a * a
+```
+
+구조:
+
+- 아래: `a + a * a` (토큰)
+- 위: 점점 E 생성됨
+
+표시:
+
+```
+e(0,1), e(2,3), e(4,5)
+e(0,3), e(2,5)
+e(0,5)
+```
+
+> 👉 의미: 작은 구간 → 큰 구간으로 확장
+
+✔ **핵심:** 👉 CYK는 "그래프 위로 쌓아가는 과정"
+
+---
+
+## 📋 22페이지
+
+### CYK is dynamic programming
+
+> **해석:** CYK는 동적 계획법이다
+
+---
+
+**Input: a + a \* a**
+
+> **해석:** 입력
+
+---
+
+**Let's compute which facts we know hold**
+
+> **해석:** 참인 것들을 계산해보자
+
+---
+
+**we'll deduce facts gradually until no more can be deduced**
+
+> **해석:** 더 이상 추론할 수 없을 때까지 반복
+
+---
+
+#### Step 1
+
+base case (length 1)
+
+```
+e(0,1) = e(2,3) = e(4,5) = true
+```
+
+> **해석:** 각 a는 E로 생성 가능
+
+---
+
+#### Step 2
+
+length 3
+
+```
+e(0,3) = true   (+)
+e(2,5) = true   (*)
+```
+
+> **해석:** a+a / a\*a 가능
+
+---
+
+#### Step 3
+
+length 5
+
+```
+e(0,5) = true
+```
+
+> **해석:** 전체 문자열 가능
+
+---
+
+#### 🖼 그림 설명
+
+인덱스:
+
+```
+0 1 2 3 4
+a + a * a
+```
+
+> 👉 구간:
+> - `(0,1)`: a
+> - `(0,3)`: a+a
+> - `(0,5)`: 전체
+
+✔ **핵심:** 👉 DP 핵심 흐름
+
+```
+length 1 → length 3 → length 5
+```
+
+---
+
+## 📋 23페이지
+
+### Visualize this parser in tabular form
+
+> **해석:** 테이블로 시각화
+
+---
+
+**Step 1 / Step 2 / Step 3**
+
+> **해석:** 단계별 결과
+
+---
+
+#### 🖼 그림 설명 (시험 핵심)
+
+표 구조:
+
+- 행: i
+- 열: j
+- `e(i,j)` 채워지는 순서
+
+**Step 1 (1칸):**
+
+```
+(0,1), (2,3), (4,5)
+```
+
+**Step 2 (3칸):**
+
+```
+(0,3), (2,5)
+```
+
+**Step 3 (5칸):**
+
+```
+(0,5)
+```
+
+---
+
+#### 🖼 오른쪽 그림 의미
+
+숫자:
+
+- `1` → step1
+- `2` → step2
+- `3` → step3
+
+> 👉 점점 확장됨
+
+---
+
+#### 🖼 아래 그래프
+
+```
+E → a
+E → E + E
+E → E * E
+```
+
+> 👉 실제 적용 규칙
+
+✔ **핵심:** 👉 CYK는 "삼각 테이블 채우기"
+
+```
+아래 → 위
+짧은 → 긴
+```
+
+---
+
+## 📋 24페이지
+
+### CYK Parser
+
+> **해석:** CYK 파서
+
+---
+
+**Builds the parse tree bottom-up**
+
+> **해석:** 아래에서 위로 트리 생성
+
+---
+
+**given A → B C**
+
+> **해석:** 규칙
+
+---
+
+**when parser finds adjacent B C**
+
+> **해석:** B와 C가 붙어있으면
+
+---
+
+**it reduces B C to A**
+
+> **해석:** A로 축소
+
+---
+
+**adding node A to parse tree**
+
+> **해석:** 트리에 추가
+
+---
+
+**Next lecture: top-down parsers**
+
+> **해석:** 다음: top-down
+
+✔ **핵심:** 👉 CYK = bottom-up reduction
+
+```
+B C → A
+```
+
+---
+
+## 📋 25페이지
+
+### CYK Pseudocode
+
+> **해석:** CYK 의사코드
+
+---
+
+#### 초기 설정
+
+```
+s = input string
+P(N,N,r) = false
+```
+
+> **해석:** 3차원 테이블
+
+---
+
+**P(i,j,Rk) = Rk is used to parse input from i to j**
+
+> **해석:** Rk가 i~j 생성 가능
+
+---
+
+#### Step 1
+
+```
+for each i
+  for each Rk → ai
+    P[i,i+1,k] = true
+```
+
+> **해석:** 길이 1 처리
+
+---
+
+#### Step 2
+
+```
+for i = 2 to n
+```
+
+> **해석:** 길이 증가
+
+---
+
+```
+for each j
+```
+
+> **해석:** 시작 위치
+
+---
+
+```
+for each k
+```
+
+> **해석:** 분할 위치
+
+---
+
+#### 핵심 조건
+
+```
+if P[j,j+k,B] and P[j+k,j+i,C]
+→ P[j,j+i,A] = true
+```
+
+> **해석:** B + C → A
+
+---
+
+#### 마지막
+
+```
+if P[0,n,R1] true
+→ accept
+```
+
+> **해석:** 전체 생성 가능하면 성공
+
+---
+
+✔ **핵심 구조 (시험용):**
+
+```
+for length
+  for start
+    for split
+      for rule
+```
+
+---
+
+## 🔥 21~25페이지 핵심 요약
+
+**1. CYK 전체 흐름**
+> 1 → 3 → 5 → ... → n
+
+**2. 테이블 의미**
+> `e(i,j)` = i~j 생성 가능?
+
+**3. 핵심 연산**
+> i~j → i~k + k+1~j
+
+**4. 알고리즘 구조**
+```
+length
+  start
+    split
+      rule
+```
+
+**5. 본질**
+> DP + Bottom-up parsing
+
+---
+
+## 📋 26페이지
+
+### Illustration
+
+> **해석:** 예시
+
+---
+
+#### 코드 구조
+
+```
+for each i = 2 to n
+  for each j = 0 to n-i
+    for each k = 1 to i-1
+      for each production RA → RB RC
+```
+
+> **해석:**
+> - `i`: 부분 문자열 길이
+> - `j`: 시작 위치
+> - `k`: 분할 위치
+
+---
+
+```
+if P[j,j+k,B] and P[j+k,j+i,C]
+then P[j,j+i,A] = true
+```
+
+> **해석:** 왼쪽과 오른쪽이 각각 생성 가능하면 전체도 생성 가능
+
+---
+
+#### 🖼 그림 설명
+
+입력:
+
+```
+a a a
+```
+
+문법:
+
+```
+E → a
+E → E E
+```
+
+---
+
+#### 상태
+
+```
+P(0,1,E)
+P(1,2,E)
+P(2,3,E)
+```
+
+> 👉 길이 1은 모두 true
+
+✔ **핵심:** 👉 지금은 length=2 계산 시작 직전
+
+---
+
+## 📋 27페이지
+
+#### 진행 상태
+
+```
+i = 2
+j = 0
+k = 1
+```
+
+> **해석:**
+> - 길이 2
+> - 시작 0
+> - split = 1
+
+---
+
+#### 체크
+
+```
+P(0,1,E) and P(1,2,E)
+```
+
+> 👉 둘 다 true
+
+---
+
+#### 결과
+
+```
+P(0,2,E) = true
+```
+
+---
+
+#### 🖼 그림 설명
+
+```
+a a
+↓
+E E → E
+```
+
+✔ **핵심:** 👉 길이 2짜리 생성 성공
+
+---
+
+## 📋 28페이지
+
+#### 진행 상태
+
+```
+i = 2
+j = 1
+k = 1
+```
+
+> **해석:** 두 번째 구간
+
+---
+
+#### 체크
+
+```
+P(1,2,E) and P(2,3,E)
+```
+
+> 👉 true
+
+---
+
+#### 결과
+
+```
+P(1,3,E) = true
+```
+
+---
+
+#### 🖼 그림 설명
+
+```
+a a
+↓
+E E → E
+```
+
+✔ **핵심:** 👉 두 번째 길이 2 구간도 성공
+
+---
+
+## 📋 29페이지
+
+#### 상태 정리
+
+현재 true:
+
+```
+P(0,1,E)
+P(1,2,E)
+P(2,3,E)
+P(0,2,E)
+P(1,3,E)
+```
+
+> 👉 의미: 길이 1 + 길이 2 전부 완료
+
+---
+
+#### 다음 단계
+
+```
+i = 3
+```
+
+> 👉 전체 길이 검사 시작
+
+---
+
+## 📋 30페이지
+
+#### 진행 상태
+
+```
+i = 3
+j = 0
+k = 1
+```
+
+---
+
+#### 첫 번째 분할
+
+```
+P(0,1,E) and P(1,3,E)
+```
+
+> 👉 true
+
+---
+
+#### 결과
+
+```
+P(0,3,E) = true
+```
+
+---
+
+#### 두 번째 분할
+
+```
+k = 2
+```
+
+#### 체크
+
+```
+P(0,2,E) and P(2,3,E)
+```
+
+> 👉 true
+
+---
+
+#### 결과
+
+```
+P(0,3,E) = true (이미 true)
+```
+
+---
+
+#### 🖼 그림 설명
+
+```
+a a a
+↓
+(E E) E
+↓
+E
+```
+
+또는
+
+```
+a (a a)
+↓
+E (E E)
+↓
+E
+```
+
+✔ **핵심:**
+> 👉 여러 방식으로 생성 가능  
+> 👉 그래도 결과는 동일
+
+---
+
+## 🔥 26~30페이지 핵심 요약
+
+**1. 루프 구조 (암기 필수)**
+```
+for length i
+  for start j
+    for split k
+      for rule
+```
+
+**2. 핵심 조건**
+```
+P[j,j+k,B] && P[j+k,j+i,C]
+→ P[j,j+i,A]
+```
+
+**3. 진행 순서**
+> 길이1 → 길이2 → 길이3
+
+**4. 분할 핵심**
+> i~j = i~k + k+1~j
+
+**5. 시험 포인트**
+> 👉 i, j, k 값 직접 추적  
+> 👉 표 채우기  
+> 👉 최종 P(0,n) 확인
+
+---
+
+> 🔥 **진짜 중요한 한 줄**  
+> CYK는 "구간 DP + 분할 정복 + bottom-up 파싱"이다
+
+---
+
+## 📋 31페이지
+
+### Illustration
+
+> **해석:** 예시
+
+---
+
+#### 코드 (계속 반복)
+
+```
+for each i = 2 to n
+  for each j = 0 to n-i
+    for each k = 1 to i-1
+      for each production RA → RB RC
+```
+
+> **해석:** 여전히 CYK 루프
+
+---
+
+#### 상태
+
+```
+i = 3
+j = 0
+k = 1
+```
+
+---
+
+#### true 값
+
+```
+P(0,1,E)
+P(1,2,E)
+P(2,3,E)
+P(0,2,E)
+P(1,3,E)
+P(0,3,E)
+```
+
+---
+
+#### 🖼 그림 설명
+
+입력:
+
+```
+a a a
+```
+
+구조:
+
+- 아래: `a a a`
+- 위: E들이 계속 쌓임
+
+> 👉 최종: 전체 문자열도 E로 생성 가능
+
+✔ **핵심:** 👉 CYK 테이블 완성 상태
+
+---
+
+## 📋 32페이지
+
+### Illustration
+
+> **해석:** 예시
+
+---
+
+#### 상태
+
+```
+i = 3
+j = 0
+k = 2
+```
+
+---
+
+#### 체크
+
+```
+P(0,2,E) and P(2,3,E)
+```
+
+> 👉 true
+
+---
+
+#### 결과
+
+```
+P(0,3,E) = true
+```
+
+(이미 true지만 또 확인됨)
+
+---
+
+#### 🖼 그림 설명
+
+두 가지 경우:
+
+```
+(a a) a
+a (a a)
+```
+
+둘 다 가능
+
+✔ **핵심:** 👉 하나의 문자열이 여러 방식으로 생성됨
+
+---
+
+## 📋 33페이지
+
+### CYK Pseudocode
+
+> **해석:** CYK 의사코드
+
+---
+
+```
+if any of P[0,n-1,x] is true
+→ s is in L(G)
+```
+
+> **해석:** 전체 구간이 생성 가능하면 성공
+
+---
+
+**O(N²) space complexity**
+
+> **해석:** 공간 복잡도
+
+---
+
+**O(N³·r) time complexity**
+
+> **해석:** 시간 복잡도
+
+✔ **설명:** 👉 r = 규칙 개수
+
+✔ **핵심:**
+
+| | 복잡도 |
+|---|---|
+| 시간 | O(n³) |
+| 공간 | O(n²) |
+
+---
+
+## 📋 34페이지
+
+### Given a CYK graph, we can find a parse tree
+
+> **해석:** CYK 그래프에서 파스 트리를 만들 수 있다
+
+---
+
+**Parse tree:**
+
+> **해석:** 파스 트리
+
+---
+
+#### 🖼 그림 설명 (이 페이지 핵심)
+
+입력:
+
+```
+a + a * a
+```
+
+#### 그래프 구조
+
+위쪽:
+
+```
+E9, E10
+E6, E7, E8
+E11
+```
+
+> 👉 CYK 결과 (여러 후보 노드)
+
+---
+
+#### 트리 (왼쪽 그림)
+
+```
+        E
+       / \
+      E   E
+     / \   |
+    a   a  a
+        +
+        *
+```
+
+> 👉 실제 선택된 parse tree
+
+---
+
+**Q: Is this the tree we want?**
+
+> **해석:** 이게 우리가 원하는 트리인가?
+
+---
+
+**Why is this not part of the tree?**
+
+> **해석:** 왜 일부 노드는 트리에 포함되지 않는가?
+
+---
+
+✔ **핵심 설명 (진짜 중요):**
+
+> 👉 CYK는 "가능한 모든 조합"을 만든다
+
+하지만
+
+> 그중 하나만 선택해서 parse tree 만든다
+
+---
+
+✔ **왜 일부 노드는 안 쓰냐?**
+
+> 👉 이유: 전체를 구성하는 경로만 선택해야 하기 때문
+
+---
+
+✔ **핵심 이해:**
+
+| | 의미 |
+|---|---|
+| CYK 결과 | 여러 가능성 (graph) |
+| parse tree | 하나의 선택된 경로 |
+
+---
+
+## 🔥 31~34페이지 핵심 요약
+
+**1. CYK 결과 vs parse tree**
+
+| | 의미 |
+|---|---|
+| CYK | 가능한 모든 구조 |
+| Parse Tree | 그 중 하나 선택 |
+
+**2. 중요한 개념**
+
+> 👉 ambiguity가 있으면 → parse tree 여러 개 가능
+
+**3. 핵심 질문**
+> "어떤 경로를 선택할 것인가?"
+
+**4. 알고리즘 관점**
+> - CYK = recognition + 후보 생성
+> - Tree 생성 = 선택 과정 추가 필요
+
+---
+
+> 🔥 **이 파트 한 줄 정리**  
+> CYK는 "정답 여부"까지는 보장하지만 "트리 선택"은 별도 문제다
+
+---
+
+## 📋 35페이지
+
+### Parsing
+
+> **해석:** 파싱
+
+---
+
+#### 🖼 그림 (전체 구조)
+
+구성 요소:
+
+```
+program text → parser → parse tree → AST → interpreter
+```
+
+중간에:
+
+- grammar
+- syntax-directed translation
+- AST-based interpreter
+
+✔ **설명:** 전체 컴파일러 흐름:
+
+> 텍스트 → 파싱 → 구조 → AST → 실행/해석
+
+> 👉 parser의 위치: 중간 핵심 단계
+
+✔ **핵심:**
+> 👉 parser는 단순히 검사하는 게 아니라  
+> 👉 "구조(AST)"까지 만든다
+
+---
+
+## 📋 36페이지
+
+### Top-Down Parsers and LL Grammars
+
+> **해석:** 탑다운 파서와 LL 문법
+
+---
+
+**Top-down parser is a parser for LL class of grammars**
+
+> **해석:** 탑다운 파서는 LL 문법용이다
+
+---
+
+**LL = Left-to-right scanning of input, Left-most derivation**
+
+> **해석:** LL = 좌→우 읽고, 좌측 유도
+
+---
+
+**Also called a predictive parser**
+
+> **해석:** 예측 파서라고도 한다
+
+---
+
+**LL class is a strict subset of LR**
+
+> **해석:** LL ⊂ LR
+
+---
+
+**LL grammars cannot contain left-recursive productions**
+
+> **해석:** LL은 left recursion 못 씀
+
+```
+X ::= X Y   ❌
+```
+
+> 👉 왼쪽 재귀 → 금지
+
+---
+
+**LL(k) where k is lookahead depth**
+
+> **해석:** k는 lookahead 개수
+
+---
+
+**if k=1, common prefix cannot be handled**
+
+> **해석:** LL(1)은 prefix 겹치면 못 처리
+
+예시:
+
+```
+X ::= a b | a c
+```
+
+> 👉 둘 다 a 시작 → 문제
+
+---
+
+**A top-down parser constructs a parse tree from the root down**
+
+> **해석:** 루트부터 트리 생성
+
+---
+
+**Not too difficult to implement recursive descent**
+
+> **해석:** 구현 쉬움
+
+✔ **핵심:**
+
+| | 의미 |
+|---|---|
+| Top-down | 위에서 시작 |
+| LL | 예측 기반 |
+
+---
+
+## 📋 37페이지
+
+### Top-down Parsing Example: Micro English
+
+> **해석:** 예시: Micro English
+
+---
+
+문법:
+
+```
+Sentence ::= Subject Verb Object .
+Subject  ::= I | a Noun | the Noun
+Object   ::= me | a Noun | the Noun
+Noun     ::= cat | mat | rat
+Verb     ::= like | is | see | sees
+```
+
+> **해석:** 간단한 영어 문법
+
+---
+
+문장 예시:
+
+```
+The cat sees the rat.
+I like a cat
+```
+
+✔ **설명:** 👉 이건 실제 "언어 파싱 예시"
+
+✔ **핵심:** 👉 parser는 이런 문장을 구조로 바꿈
+
+---
+
+## 📋 38페이지
+
+### Top-down LL Parsing
+
+> **해석:** 탑다운 LL 파싱
+
+---
+
+#### 🖼 그림 설명 (핵심)
+
+문장:
+
+```
+The cat sees a rat .
+```
+
+트리 구조:
+
+```
+Sentence
+ ├── Subject
+ ├── Verb
+ ├── Object
+ └── .
+```
+
+세부:
+
+```
+Subject → The cat
+Verb    → sees
+Object  → a rat
+```
+
+✔ **핵심:** 👉 위에서 아래로 트리 생성
+
+```
+Sentence → Subject → Noun ...
+```
+
+---
+
+## 📋 39페이지
+
+문법 반복
+
+> 👉 동일 문법 다시 보여줌
+
+✔ **설명:**
+
+> 👉 parser 구현 준비 단계
+
+> 👉 문법을 계속 확인하는 이유: 코드로 바꾸기 위해
+
+---
+
+## 📋 40페이지
+
+문법 + 트리
+
+✔ **설명:**
+
+> 👉 실제 parsing 진행 중 상태
+
+> 👉 parser는: 현재 입력 보면서 규칙 선택
+
+---
+
+## 📋 41페이지
+
+문법 + 트리 (계속)
+
+✔ **설명:** 👉 단계별 확장
+
+```
+Sentence
+→ Subject
+→ the Noun
+→ the cat
+```
+
+✔ **핵심:** 👉 LL parser는 "한 단계씩 내려감"
+
+---
+
+## 📋 42페이지
+
+### Outlook
+
+> **해석:** 정리
+
+---
+
+**Parsing ✓**
+
+> **해석:** 파싱 완료
+
+---
+
+**Top-down parsing ✓**
+
+> **해석:** 탑다운 완료
+
+---
+
+**Recursive descent parser construction**
+
+> **해석:** 재귀 하강 파서 구현
+
+---
+
+**AST Construction**
+
+> **해석:** AST 생성
+
+---
+
+**Chomsky's Hierarchy**
+
+> **해석:** 촘스키 계층
+
+✔ **설명:** 👉 지금까지 한 것 정리
+
+---
+
+## 🔥 35~42페이지 핵심 요약
+
+**1. Parser 전체 흐름**
+```
+input → parser → parse tree → AST
+```
+
+**2. Top-down parsing**
+> 루트부터 시작해서 내려감
+
+**3. LL 특징**
+> Left-to-right + Leftmost derivation
+
+**4. 제약**
+> Left recursion 금지
+
+**5. 핵심 아이디어**
+> 현재 입력 보고 "어떤 규칙 쓸지 예측"
+
+**6. Recursive Descent**
+
+> 👉 함수 기반 구현
+
+```java
+parseExpr() {
+  if (...) parseTerm();
+}
+```
+
+---
+
+> 🔥 **전체 강의 한 줄 정리**  
+> Scanner → Parser → AST → 실행
